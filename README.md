@@ -459,3 +459,72 @@ grep -E 'SuccessfulRescale|^HTTP 200 responses:' evidence/08-autoscaling-60s.txt
 | hey 負載腳本 | 已檢查，兩批實測已驗證 | [負載腳本](load-test.sh) 通過語法檢查，數據由 [30 秒](evidence/07-autoscaling-ta-30s.txt) 與 [60 秒](evidence/08-autoscaling-60s.txt) 原始紀錄核對。最後調整的 Envoy 取樣時點尚未重跑整批負載 |
 | README | 已驗證 | 安裝與重現指令、結果、排錯、已知限制，以及五個有效的相對圖片路徑 |
 | 五張必要 PNG | 已驗證 | Screenshots 收錄五張 WSL 終端機擷取畫面及對應的原始證據 |
+
+## Bonus｜LLM Serving
+
+使用 [Qwen/Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/tree/7ae557604adf67be50417f59c2c2f167def9a775) 的 Hugging Face Hub 公開 revision `7ae557604adf67be50417f59c2c2f167def9a775`。KServe v0.21.0 Standard 的 Storage Initializer 依固定 `hf://` URI 下載至 `/mnt/models`，權重、config 和兩份 tokenizer 檔案的 SHA-256 均與該 revision 一致。 `lab2-bonus/qwen` 使用 namespaced [ServingRuntime](bonus/qwen-servingruntime.yaml)、官方 v0.21.0 CPU 映像的固定 linux/amd64 digest、`--backend=huggingface`、FP32、`--max_model_len=2048` 和單一副本。實際 args 與驗證雜湊見 [模型證據](bonus/evidence/model.txt)。 [KServe Hugging Face 儲存格式](https://kserve.github.io/website/docs/model-serving/storage/providers/hf)
+
+### LLM Serving Architecture
+
+WSL 的 `curl` 經本機 port-forward 連到既有 Envoy Gateway Service。Gateway 依 `Host: qwen-lab2-bonus.example.com` 選擇 `lab2-bonus/qwen` 的 HTTPRoute，送到 Qwen Predictor Service 和 Pod，並保留 `/openai/v1/chat/completions` 路徑。Runtime 註冊名稱由 Deployment args 和日誌確認為 `qwen`。
+
+### 部署與重現
+
+在 WSL Ubuntu 的專案根目錄執行以下步驟。適用於已完成必要項目、Gateway 仍只接受 `lab2` 的 Lab。先保存當時的 Gateway 設定。若已套用 `lab2` 與 `lab2-bonus` 的白名單，可略過 patch。原始 manifest 保存在 `main` 的 `infra/gateway.yaml`，實測的 [selector diff](bonus/evidence/gateway-selector.diff) 只新增 Bonus namespace 的路由授權。
+
+```bash
+export KUBECONFIG="$PWD/.kube/kserve-lab2.yaml"
+lab=(kubectl --kubeconfig="$KUBECONFIG" --context=kind-kserve-lab2 --cache-dir="$PWD/.kube/cache")
+mkdir -p .kube/phase7b
+"${lab[@]}" -n kserve get gateway kserve-ingress-gateway -o yaml > .kube/phase7b/gateway-before.yaml
+
+"${lab[@]}" -n kserve patch gateway kserve-ingress-gateway --type=json --patch '[
+  {"op":"test","path":"/spec/listeners/0/name","value":"http"},
+  {"op":"test","path":"/spec/listeners/0/allowedRoutes/namespaces/selector","value":{"matchLabels":{"kubernetes.io/metadata.name":"lab2"}}},
+  {"op":"replace","path":"/spec/listeners/0/allowedRoutes/namespaces/selector","value":{"matchExpressions":[{"key":"kubernetes.io/metadata.name","operator":"In","values":["lab2","lab2-bonus"]}]}}
+]'
+"${lab[@]}" -n kserve wait --for=condition=Programmed gateway/kserve-ingress-gateway --timeout=60s
+bash test-inference.sh
+```
+
+確認原有 V1／V2 皆為 HTTP 200 才繼續部署。若回歸失敗，將同一個 selector 還原為 `matchLabels: {kubernetes.io/metadata.name: lab2}`，並驗證 sklearn-iris 恢復。
+
+```bash
+"${lab[@]}" create namespace lab2-bonus --dry-run=client -o yaml | "${lab[@]}" apply --server-side -f -
+"${lab[@]}" apply --server-side --dry-run=server --validate=strict -f bonus/qwen-servingruntime.yaml
+"${lab[@]}" apply --server-side -f bonus/qwen-servingruntime.yaml
+"${lab[@]}" apply --server-side --dry-run=server --validate=strict -f bonus/qwen-inferenceservice.yaml
+"${lab[@]}" apply --server-side -f bonus/qwen-inferenceservice.yaml
+"${lab[@]}" -n lab2-bonus rollout status deploy/qwen-predictor --timeout=12m
+"${lab[@]}" -n lab2-bonus wait --for=condition=Ready isvc/qwen --timeout=90s
+"${lab[@]}" -n lab2-bonus get isvc,httproute,pods
+"${lab[@]}" -n lab2-bonus top pods --containers
+```
+
+### Chat Completion API 與實測結果
+
+`bash bonus/test-chat.sh` 讀取 [Chat Request JSON](bonus/chat-request.json) 並透過 Gateway 發送 `POST /openai/v1/chat/completions`。腳本核對 Runtime 模型名稱、HTTP 200、非空的 `choices[0].message.content` 與相符的 Envoy `via_upstream` 日誌。 [測試指令碼](bonus/test-chat.sh)
+
+2026-11-21 00:24（台灣時間）實測，`lab2-bonus/qwen` 為 `READY=True`，Chat 回傳 **HTTP 200**、1 個 choice、32 個 completion tokens。Curl 端到端耗時 **5.240 秒**，同筆 Envoy access log 為 **5.233 秒**。 [HTTP Request 與 Envoy 日誌](bonus/evidence/chat.txt) · [原始 HTTP Response JSON](bonus/evidence/chat-response.json)
+
+> Kubernetes is an open-source platform for deploying and managing containerized applications on a cluster of nodes, enabling developers to easily scale and manage their applications efficiently.
+
+![WSL 真實終端機重播 Qwen Chat Completion HTTP 200 與 Envoy 上游紀錄](bonus/evidence/06-llm-chat.png)
+
+| 量測 | 結果 |
+|---|---|
+| 模型下載 | 14.556 秒，Storage Initializer 日誌 |
+| FP32 模型載入 | 約 3.719 秒，從 Runtime 開始載入到權重載入完成 |
+| 容器開始至 Pod Ready | 31 秒，Kubernetes 時間戳 |
+| Predictor `kubectl top` | 請求前 3m CPU／3,366 MiB，請求後 5m CPU／3,371 MiB |
+| Predictor cgroup v2 | 整個測試區間 14.314 秒消耗 17.886 CPU 秒，平均約 1,250m CPU，從容器啟動起的記憶體峰值 3,409.2 MiB |
+
+WSL 可看到 RTX 3050 Laptop GPU，kind 節點未宣告 GPU 資源，因此本次使用 CPU。Predictor requests 為 2 CPU／4 GiB，limits 為 4 CPU／6 GiB。 `kubectl top` 是採樣值，cgroup 區間平均還包含啟動 port-forward 與核對日誌。 [原始資源量測](bonus/evidence/resources.txt)
+
+兩個 namespace 的 HTTPRoute 都是 `Accepted=True`、`ResolvedRefs=True`，Gateway 為 `Programmed=True`。更新白名單後及 Chat 完成後，sklearn-iris V1／V2 皆回 HTTP 200、預測 `[1,1]`。這兩次為 Bonus 的回歸驗證。 [Gateway 與 sklearn-iris 回歸紀錄](bonus/evidence/gateway-and-iris.txt)
+
+### 已知限制與排錯
+
+- 此次驗證的是 CPU 上的單筆、非串流 Chat Completion。首度拉取約 4.04 GB 壓縮映像實測花了 3 分 28.739 秒，之後的時間取決於快取、網速和節點負載。
+- 首次 CPU 容器啟動時，Runtime 尚未監聽 8080，readiness probe 曾短暫收到 connection refused，模型載入後自行恢復。叢集也沿用既有的 Istio CRD 警告，實際流量由已驗證的 Envoy HTTPRoute 承接。
+- 若模型無法載入，先讀 `kubectl -n lab2-bonus logs deploy/qwen-predictor -c storage-initializer` 及 `-c kserve-container`，並核對 Pod events、image digest、固定 revision 和資源使用量。執行時使用前述 Lab kubeconfig 的命令陣列。

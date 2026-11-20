@@ -1,0 +1,11 @@
+{
+  "model": "qwen",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Explain Kubernetes in one sentence."
+    }
+  ],
+  "max_tokens": 64,
+  "stream": false
+}

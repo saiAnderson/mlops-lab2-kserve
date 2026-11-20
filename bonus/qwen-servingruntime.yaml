@@ -1,0 +1,33 @@
+apiVersion: serving.kserve.io/v1alpha1
+kind: ServingRuntime
+metadata:
+  name: qwen-huggingface-cpu
+  namespace: lab2-bonus
+  annotations:
+    serving.kserve.io/server-type: huggingfaceserver
+spec:
+  supportedModelFormats:
+    - name: huggingface
+      version: "1"
+      autoSelect: false
+  protocolVersions:
+    - v2
+    - v1
+  containers:
+    - name: kserve-container
+      image: docker.io/kserve/huggingfaceserver:v0.21.0@sha256:272a0ae4fe2735cf18c00f2bdb1770a4dd5b57be90b519cc46525f151e4d47ab
+      args:
+        - --model_name={{.Name}}
+        - --model_dir=/mnt/models
+        - --backend=huggingface
+        - --dtype=float32
+        - --max_model_len=2048
+      env:
+        - name: OMP_NUM_THREADS
+          value: "4"
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        capabilities:
+          drop:
+            - ALL

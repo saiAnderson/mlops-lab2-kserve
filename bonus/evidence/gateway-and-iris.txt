@@ -1,0 +1,22 @@
+2026-11-21T00:19:51+08:00
+Before the Gateway selector change
+PASS: V1 and V2 returned HTTP 200 and identical predictions [1, 1]
+Immediately after the Gateway selector change
+PASS: V1 and V2 returned HTTP 200 and identical predictions [1, 1]
+POST http://127.0.0.1:46375/v1/models/sklearn-iris:predict
+Response (HTTP 200)
+{"predictions":[1,1]}
+POST http://127.0.0.1:46375/v2/models/sklearn-iris/infer
+Response (HTTP 200)
+{"model_name":"sklearn-iris","model_version":null,"id":"7278b6f7-0aed-4105-9d5e-463fe885db3d","parameters":null,"outputs":[{"name":"output-0","shape":[2],"datatype":"INT32","parameters":null,"data":[1,1]}]}
+
+Final checks after Qwen chat
+Gateway kserve/kserve-ingress-gateway | listener http | Programmed=True
+Selector before: {"matchLabels":{"kubernetes.io/metadata.name":"lab2"}}
+Selector after:  {"matchExpressions":[{"key":"kubernetes.io/metadata.name","operator":"In","values":["lab2","lab2-bonus"]}]}
+HTTPRoute lab2/sklearn-iris | Host sklearn-iris-lab2.example.com | Accepted=True | ResolvedRefs=True
+HTTPRoute lab2-bonus/qwen | Host qwen-lab2-bonus.example.com | Accepted=True | ResolvedRefs=True
+Existing sklearn-iris InferenceService, Deployment, HPA and HTTPRoute UIDs, generations and specs unchanged.
+Default and Lab kubeconfig hashes, default context and test-cluster container fingerprint unchanged.
+Local main and origin/main still at 015d4ea; original submission evidence and manifests unchanged.
+PASS: V1 and V2 returned HTTP 200 and identical predictions [1, 1]

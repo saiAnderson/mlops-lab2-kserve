@@ -1,0 +1,15 @@
+Metrics Server samples (may lag a single request)
+Predictor before chat:
+POD                               NAME               CPU(cores)   MEMORY(bytes)   
+qwen-predictor-75446fb8cf-n7p54   kserve-container   3m           3366Mi
+Predictor after chat:
+POD                               NAME               CPU(cores)   MEMORY(bytes)   
+qwen-predictor-75446fb8cf-n7p54   kserve-container   5m           3371Mi
+Node after chat:
+NAME                        CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+kserve-lab2-control-plane   849m         5%       6344Mi          40%
+
+Predictor cgroup v2 snapshots bracketing the chat test (includes test setup and log verification)
+Window 14.314 s; CPU time delta 17.886 CPU-s; mean 1250m CPU
+Memory current before/after: 3387.2 / 3409.2 MiB
+Predictor cgroup memory peak since container start: 3409.2 MiB

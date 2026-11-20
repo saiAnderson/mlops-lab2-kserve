@@ -37,5 +37,9 @@ spec:
         namespaces:
           from: Selector
           selector:
-            matchLabels:
-              kubernetes.io/metadata.name: lab2
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  - lab2
+                  - lab2-bonus

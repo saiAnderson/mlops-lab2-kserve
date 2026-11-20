@@ -1,0 +1,26 @@
+InferenceService: lab2-bonus/qwen READY=True | Standard | URL: http://qwen-lab2-bonus.example.com
+Predictor Ready replicas: 1/1 | Runtime restarts: 0
+Checked model source: https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/tree/7ae557604adf67be50417f59c2c2f167def9a775
+Storage URI: hf://Qwen/Qwen2.5-0.5B-Instruct:7ae557604adf67be50417f59c2c2f167def9a775
+Fixed Runtime image: docker.io/kserve/huggingfaceserver:v0.21.0@sha256:272a0ae4fe2735cf18c00f2bdb1770a4dd5b57be90b519cc46525f151e4d47ab
+Runtime image ID: docker.io/kserve/huggingfaceserver@sha256:272a0ae4fe2735cf18c00f2bdb1770a4dd5b57be90b519cc46525f151e4d47ab
+Runtime args: --model_name=qwen, --model_dir=/mnt/models, --backend=huggingface, --dtype=float32, --max_model_len=2048
+Resources: requests 2 CPU / 4 GiB, limits 4 CPU / 6 GiB
+Runtime container start to Pod Ready: 31s (Kubernetes timestamps)
+
+Storage initializer log (UTC)
+2026-11-20T16:20:09.149111052Z 2026-11-20 16:20:09.148 1 storage.initializer INFO [kserve_storage.py:download():420] Successfully copied hf://Qwen/Qwen2.5-0.5B-Instruct:7ae557604adf67be50417f59c2c2f167def9a775 to /mnt/models
+2026-11-20T16:20:09.149146118Z 2026-11-20 16:20:09.148 1 storage.initializer INFO [kserve_storage.py:download():421] Model downloaded in 14.556030812000245 seconds.
+
+Runtime log (UTC)
+2026-11-20T16:23:55.542444596Z 2026-11-20 16:23:55.542 1 kserve INFO [__main__.py:load_model():286] Loading generative model for task 'text_generation' in torch.float32
+2026-11-20T16:23:56.017519907Z 2026-11-20 16:23:56.017 1 kserve INFO [generative_model.py:load():262] Successfully loaded tokenizer
+2026-11-20T16:23:59.261775829Z 2026-11-20 16:23:59.261 1 kserve INFO [generative_model.py:load():281] Successfully loaded huggingface model from path /mnt/models
+2026-11-20T16:23:59.262721337Z 2026-11-20 16:23:59.262 1 kserve INFO [model_server.py:register_model():472] Registering model: qwen
+2026-11-20T16:23:59.763540219Z 2026-11-20 16:23:59.763 1 uvicorn.error INFO:     Application startup complete.
+
+SHA-256 (live /mnt/models matches Hugging Face pinned revision)
+fdf756fa7fcbe7404d5c60e26bff1a0c8b8aa1f72ced49e7dd0210fe288fb7fe  model.safetensors
+18e18afcaccafade98daf13a54092927904649e1dd4eba8299ab717d5d94ff45  config.json
+c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539  tokenizer.json
+5b5d4f65d0acd3b2d56a35b56d374a36cbc1c8fa5cf3b3febbbfabf22f359583  tokenizer_config.json
