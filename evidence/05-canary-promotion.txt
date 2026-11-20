@@ -1,0 +1,59 @@
+Phase 4 Promotion | 2026-11-20T13:38:48+00:00
+InferenceService: lab2/sklearn-iris Ready=True
+Gateway: envoy-gateway-system/envoy-kserve-kserve-ingress-gateway-deaaa49b:80 | Host: sklearn-iris-lab2.example.com
+HTTPRoute lab2/sklearn-iris weights: {"sklearn-iris-predictor": 1}
+Total Requests: 5
+Old Stable Requests (model): 0 (0.00%)
+Promoted Requests (model-2): 5 (100.00%)
+Failed Requests (non-200 or transport): 0
+Unattributed Requests: 0
+Invalid HTTP 200 Predictions: 0
+Route and ready endpoints unchanged across batch: True
+
+Gateway request URL: http://127.0.0.1:37159/v1/models/sklearn-iris:predict
+Request body: {
+  "instances": [[6.8, 2.8, 4.8, 1.4], [6.0, 3.4, 4.5, 1.6]]
+}
+All HTTPRoute weights: {"sklearn-iris": {"sklearn-iris-predictor": 1}, "sklearn-iris-predictor": {"sklearn-iris-predictor": 1}}
+Ready EndpointSlice to Pod mapping: {
+  "10.244.0.16:8080": {
+    "service": "sklearn-iris-predictor",
+    "model": "model-2",
+    "uri": "gs://kfserving-examples/models/sklearn/1.0/model-2",
+    "pod": "sklearn-iris-predictor-579dfc56c9-hqcvw",
+    "podUID": "383a23c3-496e-4daf-909d-a62afaeb2310"
+  }
+}
+
+User-Agent	HTTP	Model	Upstream	Envoy request ID	Response	Curl error
+mlops-lab2-phase4-41b322c75ee9467094a5d22c13f22c10-001	200	model-2	10.244.0.16:8080	673fac11-a602-441a-a1c3-c5ca1ce118db	{"predictions":[1,1]}	
+mlops-lab2-phase4-41b322c75ee9467094a5d22c13f22c10-002	200	model-2	10.244.0.16:8080	100d7c97-30b7-4820-afc1-29cbf31a41e5	{"predictions":[1,1]}	
+mlops-lab2-phase4-41b322c75ee9467094a5d22c13f22c10-003	200	model-2	10.244.0.16:8080	d6d68ea5-7163-4c18-896f-e6a32a3d09e5	{"predictions":[1,1]}	
+mlops-lab2-phase4-41b322c75ee9467094a5d22c13f22c10-004	200	model-2	10.244.0.16:8080	74babe47-2d38-4b4c-8151-7a22eb65e93d	{"predictions":[1,1]}	
+mlops-lab2-phase4-41b322c75ee9467094a5d22c13f22c10-005	200	model-2	10.244.0.16:8080	2f0d860d-6e4e-4611-a830-d98739cb816c	{"predictions":[1,1]}	
+
+Matched Envoy access logs (JSON Lines)
+{":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:42190","duration":8,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-20T13:38:38.865Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.16:8080","upstream_local_address":"10.244.0.13:49476","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-phase4-41b322c75ee9467094a5d22c13f22c10-001","x-envoy-origin-path":"/v1/models/sklearn-iris:predict","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.13","x-request-id":"673fac11-a602-441a-a1c3-c5ca1ce118db"}
+{":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:42196","duration":2,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-20T13:38:38.885Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.16:8080","upstream_local_address":"10.244.0.13:49486","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-phase4-41b322c75ee9467094a5d22c13f22c10-002","x-envoy-origin-path":"/v1/models/sklearn-iris:predict","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.13","x-request-id":"100d7c97-30b7-4820-afc1-29cbf31a41e5"}
+{":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:42210","duration":2,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-20T13:38:38.899Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.16:8080","upstream_local_address":"10.244.0.13:49502","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-phase4-41b322c75ee9467094a5d22c13f22c10-003","x-envoy-origin-path":"/v1/models/sklearn-iris:predict","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.13","x-request-id":"d6d68ea5-7163-4c18-896f-e6a32a3d09e5"}
+{":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:42218","duration":1,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-20T13:38:38.913Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.16:8080","upstream_local_address":"10.244.0.13:49486","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-phase4-41b322c75ee9467094a5d22c13f22c10-004","x-envoy-origin-path":"/v1/models/sklearn-iris:predict","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.13","x-request-id":"74babe47-2d38-4b4c-8151-7a22eb65e93d"}
+{":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:42234","duration":2,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-20T13:38:38.927Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.16:8080","upstream_local_address":"10.244.0.13:49476","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-phase4-41b322c75ee9467094a5d22c13f22c10-005","x-envoy-origin-path":"/v1/models/sklearn-iris:predict","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.13","x-request-id":"2f0d860d-6e4e-4611-a830-d98739cb816c"}
+
+Promotion InferenceService status and active model:
+Ready=True
+StorageUri=gs://kfserving-examples/models/sklearn/1.0/model-2
+ActiveModelState=Loaded
+URL=http://sklearn-iris-lab2.example.com
+NAME                                     READY   UP-TO-DATE   AVAILABLE   AGE    CONTAINERS         IMAGES                         SELECTOR
+deployment.apps/sklearn-iris-predictor   1/1     1            1           115m   kserve-container   kserve/sklearnserver:v0.21.0   app=isvc.sklearn-iris-predictor
+
+NAME                                          READY   STATUS    RESTARTS   AGE    IP            NODE                        NOMINATED NODE   READINESS GATES
+pod/sklearn-iris-predictor-579dfc56c9-hqcvw   1/1     Running   0          2m3s   10.244.0.16   kserve-lab2-control-plane   <none>           <none>
+
+NAME                             TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE    SELECTOR
+service/sklearn-iris-predictor   ClusterIP   10.96.99.51   <none>        80/TCP    115m   app=isvc.sklearn-iris-predictor
+2026-11-20 13:36:48.287 1 storage.initializer INFO [initializer-entrypoint:<module>():17] Initializing, args: (src_uri, dest_path): [('gs://kfserving-examples/models/sklearn/1.0/model-2', '/mnt/models')]
+2026-11-20 13:36:48.287 1 storage.initializer INFO [kserve_storage.py:download():331] Copying contents of gs://kfserving-examples/models/sklearn/1.0/model-2 to local
+2026-11-20 13:37:01.789 1 storage.initializer INFO [kserve_storage.py:_download_gcs():972] Downloading: /mnt/models/model.joblib
+2026-11-20 13:37:02.131 1 storage.initializer INFO [kserve_storage.py:download():420] Successfully copied gs://kfserving-examples/models/sklearn/1.0/model-2 to /mnt/models
+2026-11-20 13:37:02.131 1 storage.initializer INFO [kserve_storage.py:download():421] Model downloaded in 13.843784335998862 seconds.

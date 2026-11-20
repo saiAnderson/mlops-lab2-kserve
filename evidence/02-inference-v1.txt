@@ -1,0 +1,21 @@
+2026-11-20T13:00:08+00:00
+Gateway: envoy-gateway-system/envoy-kserve-kserve-ingress-gateway-deaaa49b:80 -> HTTPRoute lab2/sklearn-iris
+POST http://127.0.0.1:37713/v1/models/sklearn-iris:predict
+Host: sklearn-iris-lab2.example.com
+Content-Type: application/json
+User-Agent: mlops-lab2-v1-b9257f20-b5c0-4fcb-8612-8508361f6683
+{
+  "instances": [[6.8, 2.8, 4.8, 1.4], [6.0, 3.4, 4.5, 1.6]]
+}
+
+Response (HTTP 200)
+HTTP/1.1 200 OK
+date: Fri, 20 Nov 2026 13:00:04 GMT
+server: uvicorn
+content-length: 21
+content-type: application/json
+
+{"predictions":[1,1]}
+
+Envoy access log
+{":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:34586","duration":3,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-20T13:00:05.320Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.14:8080","upstream_local_address":"10.244.0.13:40926","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-v1-b9257f20-b5c0-4fcb-8612-8508361f6683","x-envoy-origin-path":"/v1/models/sklearn-iris:predict","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.13","x-request-id":"0c61a429-815b-49e9-8597-834ba985cc2f"}

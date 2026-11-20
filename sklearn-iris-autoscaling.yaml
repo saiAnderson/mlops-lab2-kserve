@@ -1,0 +1,25 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: sklearn-iris
+  namespace: lab2
+  annotations:
+    serving.kserve.io/deploymentMode: Standard
+    serving.kserve.io/autoscalerClass: hpa
+spec:
+  predictor:
+    minReplicas: 1
+    maxReplicas: 3
+    scaleMetric: cpu
+    scaleTarget: 50
+    model:
+      modelFormat:
+        name: sklearn
+      protocolVersion: v2
+      runtime: kserve-sklearnserver
+      storageUri: gs://kfserving-examples/models/sklearn/1.0/model-2
+      resources:
+        requests:
+          cpu: 100m
+        limits:
+          cpu: 500m

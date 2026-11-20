@@ -1,0 +1,78 @@
+2026-11-20T11:43:55+00:00
+$ kubectl -n lab2 get isvc (context: kind-kserve-lab2)
+NAME           URL                                    READY   PREV   LATEST   PREVROLLEDOUTREVISION   LATESTREADYREVISION   AGE
+sklearn-iris   http://sklearn-iris-lab2.example.com   True                                                                  47s
+
+$ kubectl -n lab2 get pods
+NAME                                      READY   STATUS    RESTARTS   AGE
+sklearn-iris-predictor-65db96fbdb-2pnmr   1/1     Running   0          47s
+
+$ kubectl -n lab2 get isvc sklearn-iris -o jsonpath=...
+Ready=True
+DeploymentMode=Standard
+
+$ kubectl -n lab2 describe isvc sklearn-iris
+Name:         sklearn-iris
+Namespace:    lab2
+Labels:       <none>
+Annotations:  modelFormat: sklearn
+              serving.kserve.io/deploymentMode: Standard
+API Version:  serving.kserve.io/v1beta1
+Kind:         InferenceService
+Metadata:
+  Creation Timestamp:  2026-11-20T11:43:08Z
+  Finalizers:
+    inferenceservice.finalizers
+  Generation:        1
+  Resource Version:  5852
+  UID:               303f1f97-c916-4ca6-a373-99cf7ee49b16
+Spec:
+  Predictor:
+    Model:
+      Model Format:
+        Name:            sklearn
+      Name:              
+      Protocol Version:  v2
+      Resources:
+      Runtime:      kserve-sklearnserver
+      Storage Uri:  gs://kfserving-examples/models/sklearn/1.0/model
+Status:
+  Address:
+    URL:                         http://sklearn-iris-predictor.lab2.svc.cluster.local
+  Cluster Serving Runtime Name:  kserve-sklearnserver
+  Components:
+    Predictor:
+      URL:  http://sklearn-iris-predictor-lab2.example.com
+  Conditions:
+    Last Transition Time:  2026-11-20T11:43:55Z
+    Status:                True
+    Type:                  IngressReady
+    Last Transition Time:  2026-11-20T11:43:55Z
+    Message:               ReplicaSet "sklearn-iris-predictor-65db96fbdb" has successfully progressed.
+    Reason:                NewReplicaSetAvailable
+    Status:                True
+    Type:                  PredictorReady
+    Last Transition Time:  2026-11-20T11:43:55Z
+    Status:                True
+    Type:                  Ready
+    Last Transition Time:  2026-11-20T11:43:08Z
+    Severity:              Info
+    Status:                False
+    Type:                  Stopped
+  Deployment Mode:         Standard
+  Model Status:
+    Copies:
+      Failed Copies:  0
+      Total Copies:   1
+    States:
+      Active Model State:  Loaded
+      Target Model State:  Loaded
+    Transition Status:     UpToDate
+  Observed Generation:     1
+  URL:                     http://sklearn-iris-lab2.example.com
+Events:
+  Type     Reason                     Age                 From                Message
+  ----     ------                     ----                ----                -------
+  Warning  UpdateFailed               48s                 v1beta1Controllers  Failed to update status for InferenceService "sklearn-iris": Operation cannot be fulfilled on inferenceservices.serving.kserve.io "sklearn-iris": the object has been modified; please apply your changes to the latest version and try again
+  Warning  VirtualServiceCRDNotFound  29s (x24 over 48s)  v1beta1Controllers  Istio VirtualService CRD not present; VirtualService reconciliation skipped. If you do not use Istio, set ingress.disableIstioVirtualHost=true.
+  Normal   InferenceServiceReady      1s                  v1beta1Controllers  InferenceService [sklearn-iris] is Ready

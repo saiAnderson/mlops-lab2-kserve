@@ -1,0 +1,147 @@
+Gateway: envoy-gateway-system/envoy-kserve-kserve-ingress-gateway-deaaa49b:80 | HTTPRoute: lab2/sklearn-iris
+Before inference HTTP 200: {"predictions":[1,1]}
+Command: hey -z 60s -c 20 -m POST -host sklearn-iris-lab2.example.com -T application/json -D iris-input-v1.json 'http://127.0.0.1:44069/v1/models/sklearn-iris:predict?lab_run=73973d18a06c4a0f996ffafed0cfaf1b'
+UTC	STAGE	CPU/TARGET (AVG)	HPA_CURRENT	HPA_DESIRED	DEPLOY_CURRENT	READY	PODS
+2026-11-20T13:59:27+00:00	BEFORE	2%/50% (2m)	1	1	1	1	7c8d9dff86-64tn8:Ready
+2026-11-20T13:59:27+00:00	LOAD	2%/50% (2m)	1	1	1	1	7c8d9dff86-64tn8:Ready
+2026-11-20T13:59:30+00:00	LOAD	2%/50% (2m)	1	1	1	1	7c8d9dff86-64tn8:Ready
+2026-11-20T13:59:33+00:00	LOAD	2%/50% (2m)	1	1	1	1	7c8d9dff86-64tn8:Ready
+2026-11-20T13:59:37+00:00	LOAD	2%/50% (2m)	1	1	1	1	7c8d9dff86-64tn8:Ready
+2026-11-20T13:59:40+00:00	LOAD	2%/50% (2m)	1	1	1	1	7c8d9dff86-64tn8:Ready
+2026-11-20T13:59:43+00:00	LOAD	227%/50% (227m)	1	3	3	1	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Pending,7c8d9dff86-fddjx:Pending
+2026-11-20T13:59:47+00:00	LOAD	227%/50% (227m)	1	3	3	1	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Pending,7c8d9dff86-fddjx:Pending
+2026-11-20T13:59:50+00:00	LOAD	227%/50% (227m)	1	3	3	1	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Pending,7c8d9dff86-fddjx:Pending
+2026-11-20T13:59:53+00:00	LOAD	227%/50% (227m)	1	3	3	1	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Pending,7c8d9dff86-fddjx:Pending
+2026-11-20T13:59:57+00:00	LOAD	499%/50% (499m)	3	3	3	1	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Pending,7c8d9dff86-fddjx:Pending
+2026-11-20T14:00:00+00:00	LOAD	499%/50% (499m)	3	3	3	1	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Running,7c8d9dff86-fddjx:Running
+2026-11-20T14:00:04+00:00	LOAD	499%/50% (499m)	3	3	3	1	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Running,7c8d9dff86-fddjx:Running
+2026-11-20T14:00:07+00:00	LOAD	499%/50% (499m)	3	3	3	1	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Running,7c8d9dff86-fddjx:Running
+2026-11-20T14:00:10+00:00	LOAD	499%/50% (499m)	3	3	3	1	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Running,7c8d9dff86-fddjx:Running
+2026-11-20T14:00:14+00:00	LOAD	501%/50% (501m)	3	3	3	1	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Running,7c8d9dff86-fddjx:Running
+2026-11-20T14:00:17+00:00	LOAD	501%/50% (501m)	3	3	3	1	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Running,7c8d9dff86-fddjx:Running
+2026-11-20T14:00:20+00:00	LOAD	501%/50% (501m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:00:24+00:00	LOAD	501%/50% (501m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+
+hey result
+
+Summary:
+  Total:	60.0586 secs
+  Slowest:	0.0981 secs
+  Fastest:	0.0018 secs
+  Average:	0.0339 secs
+  Requests/sec:	590.2073
+  
+  Total data:	744387 bytes
+  Size/request:	21 bytes
+
+Response time histogram:
+  0.002 [1]	|
+  0.011 [5908]	|■■■■■■■■■■■■■■■■■
+  0.021 [14172]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  0.031 [3069]	|■■■■■■■■■
+  0.040 [304]	|■
+  0.050 [157]	|
+  0.060 [1010]	|■■■
+  0.069 [4650]	|■■■■■■■■■■■■■
+  0.079 [5396]	|■■■■■■■■■■■■■■■
+  0.088 [630]	|■■
+  0.098 [150]	|
+
+
+Latency distribution:
+  10% in 0.0087 secs
+  25% in 0.0156 secs
+  50% in 0.0194 secs
+  75% in 0.0673 secs
+  90% in 0.0714 secs
+  95% in 0.0740 secs
+  99% in 0.0841 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0000 secs, 0.0018 secs, 0.0981 secs
+  DNS-lookup:	0.0000 secs, 0.0000 secs, 0.0000 secs
+  req write:	0.0000 secs, 0.0000 secs, 0.0006 secs
+  resp wait:	0.0338 secs, 0.0017 secs, 0.0978 secs
+  resp read:	0.0001 secs, 0.0000 secs, 0.0494 secs
+
+Status code distribution:
+  [200]	35447 responses
+
+
+
+
+2026-11-20T14:00:27+00:00	AFTER	501%/50% (501m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:00:32+00:00	AFTER	501%/50% (501m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:00:38+00:00	AFTER	501%/50% (501m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:00:43+00:00	AFTER	279%/50% (279m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:00:48+00:00	AFTER	279%/50% (279m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:00:53+00:00	AFTER	279%/50% (279m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:00:59+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:01:04+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:01:09+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:01:15+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:01:20+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:01:25+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:01:30+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:01:36+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:01:41+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:01:46+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:01:51+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:01:57+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:02:02+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:02:07+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:02:13+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:02:18+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:02:23+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:02:28+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:02:34+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:02:39+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:02:44+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:02:49+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:02:55+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:03:00+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:03:05+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:03:10+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:03:16+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:03:21+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:03:26+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:03:31+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:03:37+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:03:42+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:03:47+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:03:53+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:03:58+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:04:03+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:04:08+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:04:14+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:04:19+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:04:24+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:04:29+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:04:35+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:04:40+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:04:45+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:04:50+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:04:56+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:05:01+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:05:06+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:05:11+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:05:17+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:05:22+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:05:27+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:05:32+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:05:38+00:00	AFTER	2%/50% (2m)	3	3	3	3	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Ready,7c8d9dff86-fddjx:Ready
+2026-11-20T14:05:43+00:00	AFTER	2%/50% (2m)	3	1	1	1	7c8d9dff86-64tn8:Ready,7c8d9dff86-6f75g:Succeeded,7c8d9dff86-fddjx:Ready
+
+Matching Envoy upstream access log: {":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:38802","duration":5,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-20T14:00:26.915Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.21:8080","upstream_local_address":"10.244.0.13:53496","upstream_transport_failure_reason":null,"user-agent":"hey/0.0.1","x-envoy-origin-path":"/v1/models/sklearn-iris:predict?lab_run=73973d18a06c4a0f996ffafed0cfaf1b","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.13","x-request-id":"a2576741-e838-488d-9b5b-51a56d07711c"}
+After inference HTTP 200: {"predictions":[1,1]}
+
+HPA events during or after load
+2026-11-20T13:59:41Z SuccessfulRescale New size: 3; reason: cpu resource utilization (percentage of request) above target
+2026-11-20T14:05:42Z SuccessfulRescale New size: 1; reason: All metrics below target
+
+HTTP 200 responses: 35447
+Other HTTP responses: 0
+Transport errors: 0
+Ready replicas (baseline / peak during hey / overall peak / final): 1 / 3 / 3 / 1
+HPA CPU scale-up event: True
+Recovered Envoy upstream access log from the Lab node rotated file: {":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:38798","duration":6,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-20T14:00:20.000Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.21:8080","upstream_local_address":"10.244.0.13:53434","upstream_transport_failure_reason":null,"user-agent":"hey/0.0.1","x-envoy-origin-path":"/v1/models/sklearn-iris:predict?lab_run=73973d18a06c4a0f996ffafed0cfaf1b","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.13","x-request-id":"8bd37c13-bf63-4d12-bb4e-38a02cd6cd89"}
