@@ -1,10 +1,10 @@
-2026-11-21T00:24:46+08:00
+2026-11-24T15:41:13+00:00
 InferenceService: lab2-bonus/qwen READY=True | Runtime model: qwen
 Gateway: envoy-gateway-system/envoy-kserve-kserve-ingress-gateway-deaaa49b:80 -> HTTPRoute lab2-bonus/qwen
-POST http://127.0.0.1:35271/openai/v1/chat/completions
+POST http://127.0.0.1:44249/openai/v1/chat/completions
 Host: qwen-lab2-bonus.example.com
 Content-Type: application/json
-User-Agent: mlops-lab2-bonus-3e18620ca6c94cf39b352130950f0e73
+User-Agent: mlops-lab2-bonus-05979611d4af492f9ace9ec5660f855e
 
 Request JSON
 {
@@ -19,11 +19,11 @@ Request JSON
   "stream": false
 }
 
-Response (HTTP 200) | curl time_total: 5.239628s
-{"id":"4ddd89e1-f345-4dfd-b602-a9054daf8d61","object":"chat.completion","created":1795191894,"model":"qwen","choices":[{"index":0,"message":{"role":"assistant","content":"Kubernetes is an open-source platform for deploying and managing containerized applications on a cluster of nodes, enabling developers to easily scale and manage their applications efficiently.","refusal":null,"annotations":null,"audio":null,"function_call":null,"reasoning":null},"logprobs":null,"finish_reason":"length","stop_reason":null,"token_ids":null,"routed_experts":null}],"service_tier":null,"system_fingerprint":null,"usage":{"prompt_tokens":36,"total_tokens":68,"completion_tokens":32,"prompt_tokens_details":null},"prompt_logprobs":null,"prompt_token_ids":null,"prompt_text":null,"kv_transfer_params":null}
+Response (HTTP 200) | curl time_total: 5.194908s
+{"id":"9eed3143-11d9-49dc-9a76-b72c2272a53f","object":"chat.completion","created":1795534880,"model":"qwen","choices":[{"index":0,"message":{"role":"assistant","content":"Kubernetes is an open-source platform for deploying and managing containerized applications, enabling developers to easily scale, manage, and roll out containerized environments across clusters of machines.","refusal":null,"annotations":null,"audio":null,"function_call":null,"reasoning":null},"logprobs":null,"finish_reason":"length","stop_reason":null,"token_ids":null,"routed_experts":null}],"service_tier":null,"system_fingerprint":null,"usage":{"prompt_tokens":36,"total_tokens":71,"completion_tokens":35,"prompt_tokens_details":null},"prompt_logprobs":null,"prompt_token_ids":null,"prompt_text":null,"kv_transfer_params":null}
 
 Envoy upstream access log
-{":authority":"qwen-lab2-bonus.example.com","bytes_received":171,"bytes_sent":790,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:40626","duration":5233,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2-bonus/qwen/rule/0/match/0/qwen-lab2-bonus_example_com","start_time":"2026-11-20T16:24:48.866Z","upstream_cluster":"httproute/lab2-bonus/qwen/rule/0","upstream_host":"10.244.0.24:8080","upstream_local_address":"10.244.0.13:42076","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-bonus-3e18620ca6c94cf39b352130950f0e73","x-envoy-origin-path":"/openai/v1/chat/completions","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.13","x-request-id":"19e439c7-50cf-45d0-8e2b-10b722c78f87"}
+{":authority":"qwen-lab2-bonus.example.com","bytes_received":171,"bytes_sent":803,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:49840","duration":4940,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2-bonus/qwen/rule/0/match/0/qwen-lab2-bonus_example_com","start_time":"2026-11-24T15:41:15.462Z","upstream_cluster":"httproute/lab2-bonus/qwen/rule/0","upstream_host":"10.244.0.7:8080","upstream_local_address":"10.244.0.6:41976","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-bonus-05979611d4af492f9ace9ec5660f855e","x-envoy-origin-path":"/openai/v1/chat/completions","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.6","x-request-id":"6d161e9d-8198-40f8-9959-4dd1dc3a2c50"}
 
 Generated text
-Kubernetes is an open-source platform for deploying and managing containerized applications on a cluster of nodes, enabling developers to easily scale and manage their applications efficiently.
+Kubernetes is an open-source platform for deploying and managing containerized applications, enabling developers to easily scale, manage, and roll out containerized environments across clusters of machines.

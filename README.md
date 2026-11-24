@@ -277,7 +277,7 @@ lab=(kubectl --kubeconfig="$KUBECONFIG" --context=kind-kserve-lab2 --cache-dir="
 (set -o pipefail; bash canary-test.sh promoted 5 | tee .kube/promotion-replay.txt)
 ```
 
-`sklearn-iris` 為 `READY=True`、`ActiveModelState=Loaded`。兩條 HTTPRoute 都只有 `sklearn-iris-predictor:80`，單一權重 `1` 承接 100%。此 Service 的唯一 Ready 端點 `10.244.0.16:8080` 由新 Pod 提供，初始化日誌顯示載入 `model-2`。Canary Deployment 已由 KServe 清理，舊版 Pod 已終止。經相同 Gateway／Host 重測的 5 筆請求皆 HTTP 200，全部對應到新 Pod。 [Promotion 完整實測紀錄](test-results/05-canary-promotion.txt)
+11 月 24 日於同一 WSL 叢集重驗 Promotion，`sklearn-iris` 為 `READY=True`。兩條 HTTPRoute 都將流量送往 `sklearn-iris-predictor:80`。5 筆請求皆回 HTTP 200，全部由載入 `model-2` 的 Ready Pod 處理。 [Promotion 完整實測紀錄](test-results/05-canary-promotion.txt)
 
 ### 排錯
 
@@ -510,13 +510,13 @@ bash test-inference.sh
 
 `bash llm-serving-bonus/test-chat.sh` 讀取 [Chat Request JSON](llm-serving-bonus/chat-request.json) 並透過 Gateway 發送 `POST /openai/v1/chat/completions`。腳本核對 Runtime 模型名稱、HTTP 200、非空的 `choices[0].message.content` 與相符的 Envoy `via_upstream` 日誌。 [測試指令碼](llm-serving-bonus/test-chat.sh)
 
-2026-11-21 00:24（台灣時間）實測，`lab2-bonus/qwen` 為 `READY=True`，Chat 回傳 **HTTP 200**、1 個 choice、32 個 completion tokens。Curl 端到端耗時 **5.240 秒**，同筆 Envoy access log 為 **5.233 秒**。 [HTTP Request 與 Envoy 日誌](llm-serving-bonus/test-results/chat.txt) · [原始 HTTP Response JSON](llm-serving-bonus/test-results/chat-response.json)
+2026-11-24 23:41（台灣時間）在 WSL 重跑聊天測試，`lab2-bonus/qwen` 為 `READY=True`。請求回傳 **HTTP 200**，模型產生 35 個回答 token，curl 耗時約 **5.195 秒**。 [請求、回答與 Envoy 日誌](llm-serving-bonus/test-results/chat.txt) · [同次請求的原始回應 JSON](llm-serving-bonus/test-results/chat-response.json)
 
-> Kubernetes is an open-source platform for deploying and managing containerized applications on a cluster of nodes, enabling developers to easily scale and manage their applications efficiently.
-
-11 月 24 日在 WSL 終端機重跑聊天測試，Qwen 回傳 HTTP 200，並產生下圖的回答。
+下圖是同日在 WSL 終端機另一次成功的聊天請求。
 
 ![Qwen Chat Completion 重跑截圖，包含請求、HTTP 200 與模型回答](llm-serving-bonus/test-results/06-llm-chat.png)
+
+以下資源量測來自 11 月 21 日的測試。
 
 | 量測 | 結果 |
 |---|---|
