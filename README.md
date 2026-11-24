@@ -411,7 +411,7 @@ bash load-test.sh 60s 20
 
 ## Screenshots
 
-部署圖為 WSL 終端機執行 `kubectl get isvc sklearn-iris` 的截圖，包含提示字元、查詢指令與 `READY=True`。部署文字紀錄另保留了 11 月 20 日的查詢輸出。V1、V2 和 Canary 是 11 月 24 日執行時的終端機截圖，Autoscaling 圖則顯示同日負載測試儲存的原始輸出。Canary 以 11 月 24 日截圖中的 20 筆請求、舊版 16 筆與新版 4 筆作為繳交結果。11 月 24 日的兩份負載測試完整輸出也收錄於 `test-results/`，可核對 17,035 與 30,026 筆請求及副本數變化。
+部署圖為 WSL 終端機執行 `kubectl get isvc sklearn-iris` 的截圖，包含提示字元、查詢指令與 `READY=True`。部署文字紀錄另保留了 11 月 20 日的查詢輸出。V1、V2 和 Canary 是 11 月 24 日執行時的終端機截圖，V1／V2 的文字檔另保留了 11 月 20 日的測試紀錄。Autoscaling 圖顯示 11 月 24 日負載測試儲存的原始輸出。Canary 以 11 月 24 日截圖中的 20 筆請求、舊版 16 筆與新版 4 筆作為繳交結果。11 月 24 日的兩份負載測試完整輸出也收錄於 `test-results/`，可核對 17,035 與 30,026 筆請求及副本數變化。
 
 | 檔案位置 | 畫面應顯示 |
 |---|---|
@@ -443,12 +443,12 @@ sed -n '1,12p' test-results/01-isvc-ready.txt
 ```
 
 ```bash
-# 02-inference-v1.png
+# 11 月 20 日的 V1 文字紀錄
 sed '/^Envoy access log$/,$d' test-results/02-inference-v1.txt
 ```
 
 ```bash
-# 03-inference-v2.png
+# 11 月 20 日的 V2 文字紀錄
 sed '/^Envoy access log$/,$d' test-results/03-inference-v2.txt
 ```
 
