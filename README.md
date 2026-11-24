@@ -400,7 +400,7 @@ bash load-test.sh 60s 20
 
 ## Screenshots
 
-部署圖保留先前的 WSL 終端機紀錄。V1、V2、Canary 和 Autoscaling 的圖是 11 月 24 日重跑時的終端機截圖。完整的文字輸出與逐筆紀錄也收錄於 `test-results/`。
+部署圖保留先前的 WSL 終端機紀錄。V1、V2 和 Canary 是 11 月 24 日執行時的終端機截圖，Autoscaling 圖則顯示同日負載測試儲存的原始輸出。文字輸出與逐筆紀錄也收錄於 `test-results/`。
 
 | 檔案位置 | 畫面應顯示 |
 |---|---|
@@ -408,7 +408,7 @@ bash load-test.sh 60s 20
 | `test-results/02-inference-v1.png` | V1 `:predict` POST、輸入檔 `iris-input-v1.json`、HTTP 200 和 `predictions: [1,1]` |
 | `test-results/03-inference-v2.png` | V2 `/infer` POST、輸入檔 `iris-input-v2.json`、HTTP 200，以及 `INT32`、shape `[2]`、data `[1,1]` |
 | `test-results/04-canary-count.png` | 80/20 權重、20 筆總數、Stable 16（80%）、Canary 4（20%）、失敗及無法歸因均為 0 |
-| `test-results/05-autoscaling.png` | 11 月 24 日的 60 秒／20 並行重跑結果。Ready 副本依序為 `1／3／3／1`，30,026 筆 HTTP 200，HPA 觸發 CPU 擴容 |
+| `test-results/05-autoscaling.png` | 11 月 24 日的 60 秒／20 並行重跑結果。`BEFORE`、`LOAD`、`AFTER` 的 Ready 副本為 `1 → 3 → 1`，共 30,026 筆 HTTP 200 |
 
 ![InferenceService Ready=True 與 predictor Running](test-results/01-isvc-ready.png)
 
@@ -418,7 +418,7 @@ bash load-test.sh 60s 20
 
 ![Canary 實測 20 筆，Stable 16 筆，Canary 4 筆](test-results/04-canary-count.png)
 
-![Autoscaling 60 秒補測，負載中 Ready 從 1 增至 3](test-results/05-autoscaling.png)
+![Autoscaling 60 秒補測，負載前、中、後的 Ready 副本依序為 1、3、1](test-results/05-autoscaling.png)
 
 可在專案目錄用以下指令查看各階段先前保留的文字紀錄。這些紀錄包含最初的 35,447 筆負載測試結果。
 
@@ -447,7 +447,7 @@ sed -n '1,11p' test-results/04-canary-count.txt
 ```
 
 ```bash
-# 05-autoscaling.png
+# 11 月 20 日的 60 秒負載測試紀錄
 grep '^Command:' test-results/08-autoscaling-60s.txt
 awk -F '\t' '
   $1 == "UTC" || $2 == "BEFORE" ||
