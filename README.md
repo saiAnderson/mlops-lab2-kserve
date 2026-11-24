@@ -10,7 +10,7 @@
 |---|---|---|
 | KServe Deployment | [InferenceService YAML](sklearn-iris.yaml) | [部署截圖](test-results/01-isvc-ready.png)，`READY=True` |
 | Model Inference | [推論腳本](test-inference.sh) · [V1 輸入](iris-input-v1.json) · [V2 輸入](iris-input-v2.json) | [V1 截圖](test-results/02-inference-v1.png) · [V2 截圖](test-results/03-inference-v2.png)，兩者皆為 HTTP 200，預測 `[1, 1]` |
-| Canary Deployment | [Canary YAML](sklearn-iris-canary.yaml) · [Promotion YAML](sklearn-iris-promote.yaml) · [分流測試腳本](canary-test.sh) | [分流統計截圖](test-results/04-canary-count.png)，舊版 16 筆、新版 4 筆 · [Promotion 紀錄](test-results/05-canary-promotion.txt)，5 筆皆由新版處理 |
+| Canary Deployment | [Canary YAML](sklearn-iris-canary.yaml) · [Promotion YAML](sklearn-iris-promote.yaml) · [分流測試腳本](canary-test.sh) | [11/24 分流統計截圖](test-results/04-canary-count.png)，舊版 16 筆、新版 4 筆 · [11/24 Promotion 紀錄](test-results/05-canary-promotion.txt)，5 筆皆由新版處理 |
 | Autoscaling | [Autoscaling YAML](sklearn-iris-autoscaling.yaml) · [負載測試腳本](load-test.sh) | [副本變化截圖](test-results/05-autoscaling.png)，負載期間 Ready 副本由 1 增至 3，結束後回到 1 · [11/24 的 30 秒紀錄](test-results/autoscaling-2026-11-24-30s.txt) · [11/24 的 60 秒紀錄](test-results/autoscaling-2026-11-24-60s.txt) |
 | Bonus · LLM Serving | [Qwen InferenceService](llm-serving-bonus/qwen-inferenceservice.yaml) · [ServingRuntime](llm-serving-bonus/qwen-servingruntime.yaml) · [聊天測試腳本](llm-serving-bonus/test-chat.sh) · [請求 JSON](llm-serving-bonus/chat-request.json) | [Chat Completion 截圖](llm-serving-bonus/test-results/06-llm-chat.png) · [執行紀錄](llm-serving-bonus/test-results/chat.txt)，HTTP 200 並回傳模型回答 |
 | Bonus · Argo CD | [Application YAML](argocd-application.yaml)，同步 `sklearn-iris-autoscaling.yaml` | [同步結果截圖](test-results/09-argocd-sync.png)，`Synced`、`Healthy`、`Sync OK` |
@@ -254,18 +254,20 @@ lab=(kubectl --kubeconfig="$KUBECONFIG" --context=kind-kserve-lab2 --cache-dir="
 "${lab[@]}" -n lab2 get httproute sklearn-iris sklearn-iris-predictor -o yaml
 ```
 
-以下為本次批次測試指令。重跑時若要保留本次原始證據，請另用檔名。測試以 `curl` 經 Envoy Gateway Service 送出 20 筆 V1 POST。每筆請求的唯一 `User-Agent` 配對一筆 Envoy `via_upstream` 記錄，再用 `upstream_host`、EndpointSlice、Pod UID 與 `storage-initializer` URI 辨識實際模型。腳本核對批次前後的路由和就緒端點一致，並保留逐筆回應與相符的日誌。 [canary-test.sh](canary-test.sh)
+以下指令可重現 20 筆分流測試並保存輸出。測試以 `curl` 經 Envoy Gateway Service 送出 20 筆 V1 POST。每筆請求的唯一 `User-Agent` 配對一筆 Envoy `via_upstream` 記錄，再用 `upstream_host`、EndpointSlice、Pod UID 與 `storage-initializer` URI 辨識實際模型。腳本核對批次前後的路由和就緒端點一致，並保留逐筆回應與相符的日誌。 [canary-test.sh](canary-test.sh)
 
 ```bash
 (set -o pipefail; bash canary-test.sh canary 20 | tee .kube/canary-replay.txt)
 ```
 
+### 11 月 24 日實測結果
+
 | 實測批次 | 總數 | 舊 Stable `model` | `model-2` | HTTP／傳輸失敗 | 無法歸因 |
 |---|---:|---:|---:|---:|---:|
-| 講義指定 Canary 批次 | 20 | 16（80%） | 4（20%） | 0 | 0 |
+| Canary 分流測試 | 20 | 16（80%） | 4（20%） | 0 | 0 |
 | Promotion 後重測 | 5 | 0（0%） | 5（100%） | 0 | 0 |
 
-16:4 是此次觀測結果，20 筆抽樣可出現其他分布。以下文字紀錄來自 11 月 20 日，`10.244.0.14:8080` 對應 Stable `model`，`10.244.0.15:8080` 對應 Canary `model-2`。各筆皆 HTTP 200，兩個後端都回傳 `[1,1]`。Screenshots 收錄的是 11 月 24 日另一次重跑的截圖，該批次也得到 16／4。 [Canary 完整實測紀錄](test-results/04-canary-count.txt)
+11 月 24 日在 WSL 執行 `bash canary-test.sh canary 20`，路由權重為 80／20。共 20 筆請求，舊版 `model` 收到 16 筆，新版 `model-2` 收到 4 筆，失敗、無法歸因與預測格式錯誤皆為 0。16／4 是此次抽樣的觀測結果，重跑時分布可能不同。 [11/24 Canary 統計截圖](test-results/04-canary-count.png)
 
 ### Promotion
 
@@ -279,6 +281,10 @@ lab=(kubectl --kubeconfig="$KUBECONFIG" --context=kind-kserve-lab2 --cache-dir="
 ```
 
 11 月 24 日 22:29（台灣時間）在 WSL 驗證 Promotion，`sklearn-iris` 為 `READY=True`。5 筆請求皆回 HTTP 200，全部由 `model-2` 處理。 [Promotion 終端機輸出](test-results/05-canary-promotion.txt)
+
+### 歷史紀錄
+
+11 月 20 日的 Canary 逐筆回應與 Envoy 日誌另行保留，供查閱早期測試。 [11/20 Canary 歷史紀錄](test-results/04-canary-count.txt)
 
 ### 排錯
 
@@ -405,14 +411,14 @@ bash load-test.sh 60s 20
 
 ## Screenshots
 
-部署圖為 WSL 終端機執行 `kubectl get isvc sklearn-iris` 的截圖，包含提示字元、查詢指令與 `READY=True`。部署文字紀錄另保留了 11 月 20 日的查詢輸出。V1、V2 和 Canary 是 11 月 24 日執行時的終端機截圖，Autoscaling 圖則顯示同日負載測試儲存的原始輸出。Canary 的截圖與文字紀錄分別來自 11 月 24 日與 11 月 20 日的兩個批次，兩次結果皆為 16／4。11 月 24 日的兩份負載測試完整輸出也收錄於 `test-results/`，可核對 17,035 與 30,026 筆請求及副本數變化。
+部署圖為 WSL 終端機執行 `kubectl get isvc sklearn-iris` 的截圖，包含提示字元、查詢指令與 `READY=True`。部署文字紀錄另保留了 11 月 20 日的查詢輸出。V1、V2 和 Canary 是 11 月 24 日執行時的終端機截圖，Autoscaling 圖則顯示同日負載測試儲存的原始輸出。Canary 以 11 月 24 日截圖中的 20 筆請求、舊版 16 筆與新版 4 筆作為繳交結果。11 月 24 日的兩份負載測試完整輸出也收錄於 `test-results/`，可核對 17,035 與 30,026 筆請求及副本數變化。
 
 | 檔案位置 | 畫面應顯示 |
 |---|---|
 | `test-results/01-isvc-ready.png` | WSL 終端機提示字元、完整查詢指令、`sklearn-iris` 與 `READY=True` |
 | `test-results/02-inference-v1.png` | V1 `:predict` POST、輸入檔 `iris-input-v1.json`、HTTP 200 和 `predictions: [1,1]` |
 | `test-results/03-inference-v2.png` | V2 `/infer` POST、輸入檔 `iris-input-v2.json`、HTTP 200，以及 `INT32`、shape `[2]`、data `[1,1]` |
-| `test-results/04-canary-count.png` | 80/20 權重、20 筆總數、Stable 16（80%）、Canary 4（20%）、失敗及無法歸因均為 0 |
+| `test-results/04-canary-count.png` | 11 月 24 日的 Canary 結果，80/20 權重、20 筆總數、Stable 16（80%）、Canary 4（20%）、失敗及無法歸因均為 0 |
 | `test-results/05-autoscaling.png` | 11 月 24 日的 60 秒／20 並行重跑結果。`BEFORE`、`LOAD`、`AFTER` 的 Ready 副本為 `1 → 3 → 1`，共 30,026 筆 HTTP 200 |
 
 ![WSL 終端機查詢 sklearn-iris，InferenceService 顯示 Ready=True](test-results/01-isvc-ready.png)
@@ -421,7 +427,7 @@ bash load-test.sh 60s 20
 
 ![V2 推論 HTTP 200，輸出 INT32，預測為 1、1](test-results/03-inference-v2.png)
 
-![Canary 實測 20 筆，Stable 16 筆，Canary 4 筆](test-results/04-canary-count.png)
+![11 月 24 日 Canary 實測 20 筆，Stable 16 筆，Canary 4 筆](test-results/04-canary-count.png)
 
 ![Autoscaling 60 秒補測，負載前、中、後的 Ready 副本依序為 1、3、1](test-results/05-autoscaling.png)
 
@@ -447,7 +453,7 @@ sed '/^Envoy access log$/,$d' test-results/03-inference-v2.txt
 ```
 
 ```bash
-# 04-canary-count.png
+# 11 月 20 日的 Canary 歷史紀錄
 sed -n '1,11p' test-results/04-canary-count.txt
 ```
 
