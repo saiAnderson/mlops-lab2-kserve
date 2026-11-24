@@ -18,7 +18,7 @@ kube = ["kubectl", f"--kubeconfig={os.environ['KUBECONFIG']}", "--context=kind-k
 gateway = "kserve-ingress-gateway"
 selector = f"gateway.envoyproxy.io/owning-gateway-name={gateway},gateway.envoyproxy.io/owning-gateway-namespace=kserve"
 namespace = "lab2-bonus"
-request = Path("bonus/chat-request.json")
+request = Path("llm-serving-bonus/chat-request.json")
 chat_path = "/openai/v1/chat/completions"
 
 def kubectl(*args):

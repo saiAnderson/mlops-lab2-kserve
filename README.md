@@ -8,11 +8,11 @@
 
 | 作業項目 | 部署與測試檔案 | 執行結果 |
 |---|---|---|
-| KServe Deployment | [InferenceService YAML](sklearn-iris.yaml) | [部署截圖](evidence/01-isvc-ready.png)，`READY=True` |
-| Model Inference | [推論腳本](test-inference.sh) · [V1 輸入](iris-input-v1.json) · [V2 輸入](iris-input-v2.json) | [V1 截圖](evidence/02-inference-v1.png) · [V2 截圖](evidence/03-inference-v2.png)，兩者皆為 HTTP 200，預測 `[1, 1]` |
-| Canary Deployment | [Canary YAML](sklearn-iris-canary.yaml) · [Promotion YAML](sklearn-iris-promote.yaml) · [分流測試腳本](canary-test.sh) | [分流統計截圖](evidence/04-canary-count.png)，舊版 16 筆、新版 4 筆 · [Promotion 紀錄](evidence/05-canary-promotion.txt)，5 筆皆由新版處理 |
-| Autoscaling | [Autoscaling YAML](sklearn-iris-autoscaling.yaml) · [負載測試腳本](load-test.sh) | [副本變化截圖](evidence/05-autoscaling.png)，負載期間 Ready 副本由 1 增至 3，結束後回到 1 |
-| Bonus · LLM Serving | [Qwen InferenceService](bonus/qwen-inferenceservice.yaml) · [ServingRuntime](bonus/qwen-servingruntime.yaml) · [聊天測試腳本](bonus/test-chat.sh) · [請求 JSON](bonus/chat-request.json) | [Chat Completion 截圖](bonus/evidence/06-llm-chat.png) · [執行紀錄](bonus/evidence/chat.txt)，HTTP 200 並回傳模型回答 |
+| KServe Deployment | [InferenceService YAML](sklearn-iris.yaml) | [部署截圖](test-results/01-isvc-ready.png)，`READY=True` |
+| Model Inference | [推論腳本](test-inference.sh) · [V1 輸入](iris-input-v1.json) · [V2 輸入](iris-input-v2.json) | [V1 截圖](test-results/02-inference-v1.png) · [V2 截圖](test-results/03-inference-v2.png)，兩者皆為 HTTP 200，預測 `[1, 1]` |
+| Canary Deployment | [Canary YAML](sklearn-iris-canary.yaml) · [Promotion YAML](sklearn-iris-promote.yaml) · [分流測試腳本](canary-test.sh) | [分流統計截圖](test-results/04-canary-count.png)，舊版 16 筆、新版 4 筆 · [Promotion 紀錄](test-results/05-canary-promotion.txt)，5 筆皆由新版處理 |
+| Autoscaling | [Autoscaling YAML](sklearn-iris-autoscaling.yaml) · [負載測試腳本](load-test.sh) | [副本變化截圖](test-results/05-autoscaling.png)，負載期間 Ready 副本由 1 增至 3，結束後回到 1 |
+| Bonus · LLM Serving | [Qwen InferenceService](llm-serving-bonus/qwen-inferenceservice.yaml) · [ServingRuntime](llm-serving-bonus/qwen-servingruntime.yaml) · [聊天測試腳本](llm-serving-bonus/test-chat.sh) · [請求 JSON](llm-serving-bonus/chat-request.json) | [Chat Completion 截圖](llm-serving-bonus/test-results/06-llm-chat.png) · [執行紀錄](llm-serving-bonus/test-results/chat.txt)，HTTP 200 並回傳模型回答 |
 
 ## Architecture
 
@@ -211,9 +211,9 @@ curl --noproxy '*' -sS -i -X POST -H 'Host: sklearn-iris-lab2.example.com' \
 
 | 驗收項目 | 實際結果 | 原始輸出 |
 |---|---|---|
-| 部署 | `READY=True`、`DeploymentMode=Standard`，predictor `1/1 Running` | [01-isvc-ready.txt](evidence/01-isvc-ready.txt) |
-| V1 | HTTP 200，`predictions=[1,1]` | [02-inference-v1.txt](evidence/02-inference-v1.txt) |
-| V2 | HTTP 200，`outputs[0].data=[1,1]`，shape `[2]`，datatype `INT32`。輸入為 shape `[2,4]` 的 `FP32` | [03-inference-v2.txt](evidence/03-inference-v2.txt) |
+| 部署 | `READY=True`、`DeploymentMode=Standard`，predictor `1/1 Running` | [01-isvc-ready.txt](test-results/01-isvc-ready.txt) |
+| V1 | HTTP 200，`predictions=[1,1]` | [02-inference-v1.txt](test-results/02-inference-v1.txt) |
+| V2 | HTTP 200，`outputs[0].data=[1,1]`，shape `[2]`，datatype `INT32`。輸入為 shape `[2,4]` 的 `FP32` | [03-inference-v2.txt](test-results/03-inference-v2.txt) |
 
 `test-cluster` 容器 ID、啟動時間、重啟次數和 IP 均與部署前相同，兩份 kubeconfig 的 SHA-256 也一致。
 
@@ -238,7 +238,7 @@ KServe v0.21.0 Standard 使用 `spec.canary`、`trafficPercent: 20` 與 Gateway 
 
 ### 佈署與測量
 
-Stable baseline 保存在 [sklearn-iris.yaml](sklearn-iris.yaml)。[sklearn-iris-canary.yaml](sklearn-iris-canary.yaml) 保留既有 `model`，新增名為 `model-2` 的獨立 predictor。兩個 Deployment 均為 `1/1 Available`，`CanaryPredictorReady=True`。`sklearn-iris` 與 `sklearn-iris-predictor` 兩條 HTTPRoute 均為 80/20。`model` 與 `model-2` 的 `model.joblib` 實測 SHA-256 相同，本次驗證的是部署版本的流量分配與 Promotion。 [實測 SHA-256](evidence/04-canary-model-hashes.txt)
+Stable baseline 保存在 [sklearn-iris.yaml](sklearn-iris.yaml)。[sklearn-iris-canary.yaml](sklearn-iris-canary.yaml) 保留既有 `model`，新增名為 `model-2` 的獨立 predictor。兩個 Deployment 均為 `1/1 Available`，`CanaryPredictorReady=True`。`sklearn-iris` 與 `sklearn-iris-predictor` 兩條 HTTPRoute 均為 80/20。`model` 與 `model-2` 的 `model.joblib` 實測 SHA-256 相同，本次驗證的是部署版本的流量分配與 Promotion。 [實測 SHA-256](test-results/04-canary-model-hashes.txt)
 
 從 Phase 3 的 Stable 狀態重現時，使用以下 WSL Bash 指令。
 
@@ -264,7 +264,7 @@ lab=(kubectl --kubeconfig="$KUBECONFIG" --context=kind-kserve-lab2 --cache-dir="
 | 講義指定 Canary 批次 | 20 | 16（80%） | 4（20%） | 0 | 0 |
 | Promotion 後重測 | 5 | 0（0%） | 5（100%） | 0 | 0 |
 
-16:4 是此次觀測結果，20 筆抽樣可出現其他分布。Canary 批次中，`10.244.0.14:8080` 對應 Stable `model`，`10.244.0.15:8080` 對應 Canary `model-2`。各筆皆 HTTP 200，兩個後端都回傳 `[1,1]`。 [Canary 完整實測紀錄](evidence/04-canary-count.txt)
+16:4 是此次觀測結果，20 筆抽樣可出現其他分布。Canary 批次中，`10.244.0.14:8080` 對應 Stable `model`，`10.244.0.15:8080` 對應 Canary `model-2`。各筆皆 HTTP 200，兩個後端都回傳 `[1,1]`。 [Canary 完整實測紀錄](test-results/04-canary-count.txt)
 
 ### Promotion
 
@@ -277,7 +277,7 @@ lab=(kubectl --kubeconfig="$KUBECONFIG" --context=kind-kserve-lab2 --cache-dir="
 (set -o pipefail; bash canary-test.sh promoted 5 | tee .kube/promotion-replay.txt)
 ```
 
-`sklearn-iris` 為 `READY=True`、`ActiveModelState=Loaded`。兩條 HTTPRoute 都只有 `sklearn-iris-predictor:80`，單一權重 `1` 承接 100%。此 Service 的唯一 Ready 端點 `10.244.0.16:8080` 由新 Pod 提供，初始化日誌顯示載入 `model-2`。Canary Deployment 已由 KServe 清理，舊版 Pod 已終止。經相同 Gateway／Host 重測的 5 筆請求皆 HTTP 200，全部對應到新 Pod。 [Promotion 完整實測紀錄](evidence/05-canary-promotion.txt)
+`sklearn-iris` 為 `READY=True`、`ActiveModelState=Loaded`。兩條 HTTPRoute 都只有 `sklearn-iris-predictor:80`，單一權重 `1` 承接 100%。此 Service 的唯一 Ready 端點 `10.244.0.16:8080` 由新 Pod 提供，初始化日誌顯示載入 `model-2`。Canary Deployment 已由 KServe 清理，舊版 Pod 已終止。經相同 Gateway／Host 重測的 5 筆請求皆 HTTP 200，全部對應到新 Pod。 [Promotion 完整實測紀錄](test-results/05-canary-promotion.txt)
 
 ### 排錯
 
@@ -345,7 +345,7 @@ EOF
 "${lab[@]}" -n lab2 top pods
 ```
 
-`kubectl top pods` 在 API Service 剛就緒時可能要等下一輪採樣。本次重查已取得 Pod CPU 和記憶體數值，HPA 的 `ScalingActive=True`、reason 為 `ValidMetricFound`。TLS 驗證回報 `Verify return code: 0 (ok)`。 [安裝後的真實基線](evidence/06-autoscaling-baseline.txt)
+`kubectl top pods` 在 API Service 剛就緒時可能要等下一輪採樣。本次重查已取得 Pod CPU 和記憶體數值，HPA 的 `ScalingActive=True`、reason 為 `ValidMetricFound`。TLS 驗證回報 `Verify return code: 0 (ok)`。 [安裝後的真實基線](test-results/06-autoscaling-baseline.txt)
 
 ### HPA 與負載工具
 
@@ -385,8 +385,8 @@ bash load-test.sh 60s 20
 | TA 指定 30 秒 × 20 並行 | 15,902 | 0／0 | 528.97 | 37.8／20.1／73.9／78.5 ms | 1／1／3／1 |
 | 補測 60 秒 × 20 並行 | 35,447 | 0／0 | 590.21 | 33.9／19.4／74.0／84.1 ms | 1／3／3／1 |
 
-- **30 秒批次。** `13:52:11` HPA 記錄 `SuccessfulRescale`，原因為 CPU utilization 超過目標，將 Desired 提高至 3。新 Pod 在 `hey` 結束後才 Ready，`13:52:51` 觀察到 3 個 Ready，`13:57:56` HPA 自動降至 1。`hey` 的原始狀態分布只有 HTTP 200，無傳輸錯誤分布。原始腳本末尾的 assertion 來自 User-Agent 比對失敗，同一批次的 Envoy upstream HTTP 200 已從真實日誌補錄。 [TA 30 秒實測紀錄](evidence/07-autoscaling-ta-30s.txt)
-- **60 秒補測。** 等第一批降至 1 個 Ready 後，只延長持續時間，保持 20 並行、相同 HPA、CPU 資源與輸入。`13:59:41` HPA 因 CPU 超標把 Desired 提至 3，`13:59:43` CPU 為 227%（227m），當時 Ready 為 1。`14:00:20` 負載仍在執行，已觀察到 3 個 Ready，CPU 為 501%（501m）。`14:05:42` HPA 自動降至 1，下一次採樣確認 1 個 Ready。Envoy 活躍日誌和 Lab 節點上的輪替日誌均有此批次 ID，紀錄含 `via_upstream`、HTTP 200 與實際後端位址。腳本現於負載期間擷取 Envoy 樣本，降低負載結束後因日誌輪替遺漏的機率。 [60 秒實測紀錄](evidence/08-autoscaling-60s.txt)
+- **30 秒批次。** `13:52:11` HPA 記錄 `SuccessfulRescale`，原因為 CPU utilization 超過目標，將 Desired 提高至 3。新 Pod 在 `hey` 結束後才 Ready，`13:52:51` 觀察到 3 個 Ready，`13:57:56` HPA 自動降至 1。`hey` 的原始狀態分布只有 HTTP 200，無傳輸錯誤分布。原始腳本末尾的 assertion 來自 User-Agent 比對失敗，同一批次的 Envoy upstream HTTP 200 已從真實日誌補錄。 [TA 30 秒實測紀錄](test-results/07-autoscaling-ta-30s.txt)
+- **60 秒補測。** 等第一批降至 1 個 Ready 後，只延長持續時間，保持 20 並行、相同 HPA、CPU 資源與輸入。`13:59:41` HPA 因 CPU 超標把 Desired 提至 3，`13:59:43` CPU 為 227%（227m），當時 Ready 為 1。`14:00:20` 負載仍在執行，已觀察到 3 個 Ready，CPU 為 501%（501m）。`14:05:42` HPA 自動降至 1，下一次採樣確認 1 個 Ready。Envoy 活躍日誌和 Lab 節點上的輪替日誌均有此批次 ID，紀錄含 `via_upstream`、HTTP 200 與實際後端位址。腳本現於負載期間擷取 Envoy 樣本，降低負載結束後因日誌輪替遺漏的機率。 [60 秒實測紀錄](test-results/08-autoscaling-60s.txt)
 - **測試後。** `sklearn-iris` 持續 `READY=True`，仍使用 `model-2`，經相同 Gateway 的負載前後探測均為 HTTP 200，預測 `[1,1]`。Metrics Server 為 `1/1`，Metrics API 可用，最終 HPA CPU `2%/50%`，`ScalingActive=True`（`ValidMetricFound`）。舊 `test-cluster` 容器 ID、啟動時間、重啟次數及 IP 前後相同，兩份 kubeconfig 的 SHA-256 相同，預設 context 仍為 `kind-test-cluster`。
 
 ### 重跑驗證（2026-11-24，台灣時間）
@@ -400,27 +400,27 @@ bash load-test.sh 60s 20
 
 ## Screenshots
 
-五張 PNG 從 WSL Ubuntu 的 xterm 視窗擷取。畫面顯示各階段當時輸出的原始紀錄，保留原始時間戳與結果。完整 TXT 與逐筆紀錄也一併存於 `evidence/`。
+部署圖保留先前的 WSL 終端機紀錄。V1、V2、Canary 和 Autoscaling 的圖是 11 月 24 日重跑時的終端機截圖。完整的文字輸出與逐筆紀錄也收錄於 `test-results/`。
 
 | 檔案位置 | 畫面應顯示 |
 |---|---|
-| `evidence/01-isvc-ready.png` | `sklearn-iris`、`READY=True`、`Standard` 和 `1/1 Running` |
-| `evidence/02-inference-v1.png` | V1 `:predict` POST、輸入、HTTP 200 和 `predictions: [1,1]` |
-| `evidence/03-inference-v2.png` | V2 `/infer` POST、輸入、HTTP 200，以及 `INT32`、shape `[2]`、data `[1,1]` |
-| `evidence/04-canary-count.png` | 80/20 權重、20 筆總數、Stable 16（80%）、Canary 4（20%）、失敗及無法歸因均為 0 |
-| `evidence/05-autoscaling.png` | 60 秒／20 並行，負載中 Ready `1 → 3`、CPU 超標的 `SuccessfulRescale`、35,447 筆 HTTP 200，以及負載後回到 1 Ready |
+| `test-results/01-isvc-ready.png` | `sklearn-iris`、`READY=True`、`Standard` 和 `1/1 Running` |
+| `test-results/02-inference-v1.png` | V1 `:predict` POST、輸入檔 `iris-input-v1.json`、HTTP 200 和 `predictions: [1,1]` |
+| `test-results/03-inference-v2.png` | V2 `/infer` POST、輸入檔 `iris-input-v2.json`、HTTP 200，以及 `INT32`、shape `[2]`、data `[1,1]` |
+| `test-results/04-canary-count.png` | 80/20 權重、20 筆總數、Stable 16（80%）、Canary 4（20%）、失敗及無法歸因均為 0 |
+| `test-results/05-autoscaling.png` | 11 月 24 日的 60 秒／20 並行重跑結果。Ready 副本依序為 `1／3／3／1`，30,026 筆 HTTP 200，HPA 觸發 CPU 擴容 |
 
-![InferenceService Ready=True 與 predictor Running](evidence/01-isvc-ready.png)
+![InferenceService Ready=True 與 predictor Running](test-results/01-isvc-ready.png)
 
-![V1 推論 HTTP 200，預測為 1、1](evidence/02-inference-v1.png)
+![V1 推論 HTTP 200，預測為 1、1](test-results/02-inference-v1.png)
 
-![V2 推論 HTTP 200，輸出 INT32，預測為 1、1](evidence/03-inference-v2.png)
+![V2 推論 HTTP 200，輸出 INT32，預測為 1、1](test-results/03-inference-v2.png)
 
-![Canary 實測 20 筆，Stable 16 筆，Canary 4 筆](evidence/04-canary-count.png)
+![Canary 實測 20 筆，Stable 16 筆，Canary 4 筆](test-results/04-canary-count.png)
 
-![Autoscaling 60 秒補測，負載中 Ready 從 1 增至 3](evidence/05-autoscaling.png)
+![Autoscaling 60 秒補測，負載中 Ready 從 1 增至 3](test-results/05-autoscaling.png)
 
-可在專案目錄用以下指令重播五組真實輸出。
+可在專案目錄用以下指令查看各階段先前保留的文字紀錄。這些紀錄包含最初的 35,447 筆負載測試結果。
 
 ```bash
 cd ~/projects/mlops-lab2
@@ -428,34 +428,34 @@ cd ~/projects/mlops-lab2
 
 ```bash
 # 01-isvc-ready.png
-sed -n '1,12p' evidence/01-isvc-ready.txt
+sed -n '1,12p' test-results/01-isvc-ready.txt
 ```
 
 ```bash
 # 02-inference-v1.png
-sed '/^Envoy access log$/,$d' evidence/02-inference-v1.txt
+sed '/^Envoy access log$/,$d' test-results/02-inference-v1.txt
 ```
 
 ```bash
 # 03-inference-v2.png
-sed '/^Envoy access log$/,$d' evidence/03-inference-v2.txt
+sed '/^Envoy access log$/,$d' test-results/03-inference-v2.txt
 ```
 
 ```bash
 # 04-canary-count.png
-sed -n '1,11p' evidence/04-canary-count.txt
+sed -n '1,11p' test-results/04-canary-count.txt
 ```
 
 ```bash
 # 05-autoscaling.png
-grep '^Command:' evidence/08-autoscaling-60s.txt
+grep '^Command:' test-results/08-autoscaling-60s.txt
 awk -F '\t' '
   $1 == "UTC" || $2 == "BEFORE" ||
   ($2 == "LOAD" && $5 > 1 && !desired++) ||
   ($2 == "LOAD" && $7 >= 2 && !ready++) ||
   ($2 == "AFTER" && $5 == 1 && $7 == 1 && !down++) {print}
-' evidence/08-autoscaling-60s.txt | cut -f1-7
-grep -E 'SuccessfulRescale|^HTTP 200 responses:' evidence/08-autoscaling-60s.txt
+' test-results/08-autoscaling-60s.txt | cut -f1-7
+grep -E 'SuccessfulRescale|^HTTP 200 responses:' test-results/08-autoscaling-60s.txt
 ```
 
 ## Known Limitations
@@ -467,7 +467,7 @@ grep -E 'SuccessfulRescale|^HTTP 200 responses:' evidence/08-autoscaling-60s.txt
 
 ## Bonus｜LLM Serving
 
-使用 [Qwen/Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/tree/7ae557604adf67be50417f59c2c2f167def9a775) 的 Hugging Face Hub 公開 revision `7ae557604adf67be50417f59c2c2f167def9a775`。KServe v0.21.0 Standard 的 Storage Initializer 依固定 `hf://` URI 下載至 `/mnt/models`，權重、config 和兩份 tokenizer 檔案的 SHA-256 均與該 revision 一致。 `lab2-bonus/qwen` 使用 namespaced [ServingRuntime](bonus/qwen-servingruntime.yaml)、官方 v0.21.0 CPU 映像的固定 linux/amd64 digest、`--backend=huggingface`、FP32、`--max_model_len=2048` 和單一副本。實際 args 與驗證雜湊見 [模型證據](bonus/evidence/model.txt)。 [KServe Hugging Face 儲存格式](https://kserve.github.io/website/docs/model-serving/storage/providers/hf)
+使用 [Qwen/Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/tree/7ae557604adf67be50417f59c2c2f167def9a775) 的 Hugging Face Hub 公開 revision `7ae557604adf67be50417f59c2c2f167def9a775`。KServe v0.21.0 Standard 的 Storage Initializer 依固定 `hf://` URI 下載至 `/mnt/models`，權重、config 和兩份 tokenizer 檔案的 SHA-256 均與該 revision 一致。 `lab2-bonus/qwen` 使用 namespaced [ServingRuntime](llm-serving-bonus/qwen-servingruntime.yaml)、官方 v0.21.0 CPU 映像的固定 linux/amd64 digest、`--backend=huggingface`、FP32、`--max_model_len=2048` 和單一副本。實際 args 與驗證雜湊見 [模型證據](llm-serving-bonus/test-results/model.txt)。 [KServe Hugging Face 儲存格式](https://kserve.github.io/website/docs/model-serving/storage/providers/hf)
 
 ### LLM Serving Architecture
 
@@ -475,7 +475,7 @@ WSL 的 `curl` 經本機 port-forward 連到既有 Envoy Gateway Service。Gatew
 
 ### 部署與重現
 
-在 WSL Ubuntu 的專案根目錄執行以下步驟。適用於已完成必要項目、Gateway 仍只接受 `lab2` 的 Lab。先保存當時的 Gateway 設定。若已套用 `lab2` 與 `lab2-bonus` 的白名單，可略過 patch。原始 manifest 保存在 `main` 的 `infra/gateway.yaml`，實測的 [selector diff](bonus/evidence/gateway-selector.diff) 只新增 Bonus namespace 的路由授權。
+在 WSL Ubuntu 的專案根目錄執行以下步驟。適用於已完成必要項目、Gateway 仍只接受 `lab2` 的 Lab。先保存當時的 Gateway 設定。若已套用 `lab2` 與 `lab2-bonus` 的白名單，可略過 patch。原始 manifest 保存在 `main` 的 `infra/gateway.yaml`，實測的 [selector diff](llm-serving-bonus/test-results/gateway-selector.diff) 只新增 Bonus namespace 的路由授權。
 
 ```bash
 export KUBECONFIG="$PWD/.kube/kserve-lab2.yaml"
@@ -496,10 +496,10 @@ bash test-inference.sh
 
 ```bash
 "${lab[@]}" create namespace lab2-bonus --dry-run=client -o yaml | "${lab[@]}" apply --server-side -f -
-"${lab[@]}" apply --server-side --dry-run=server --validate=strict -f bonus/qwen-servingruntime.yaml
-"${lab[@]}" apply --server-side -f bonus/qwen-servingruntime.yaml
-"${lab[@]}" apply --server-side --dry-run=server --validate=strict -f bonus/qwen-inferenceservice.yaml
-"${lab[@]}" apply --server-side -f bonus/qwen-inferenceservice.yaml
+"${lab[@]}" apply --server-side --dry-run=server --validate=strict -f llm-serving-bonus/qwen-servingruntime.yaml
+"${lab[@]}" apply --server-side -f llm-serving-bonus/qwen-servingruntime.yaml
+"${lab[@]}" apply --server-side --dry-run=server --validate=strict -f llm-serving-bonus/qwen-inferenceservice.yaml
+"${lab[@]}" apply --server-side -f llm-serving-bonus/qwen-inferenceservice.yaml
 "${lab[@]}" -n lab2-bonus rollout status deploy/qwen-predictor --timeout=12m
 "${lab[@]}" -n lab2-bonus wait --for=condition=Ready isvc/qwen --timeout=90s
 "${lab[@]}" -n lab2-bonus get isvc,httproute,pods
@@ -508,13 +508,15 @@ bash test-inference.sh
 
 ### Chat Completion API 與實測結果
 
-`bash bonus/test-chat.sh` 讀取 [Chat Request JSON](bonus/chat-request.json) 並透過 Gateway 發送 `POST /openai/v1/chat/completions`。腳本核對 Runtime 模型名稱、HTTP 200、非空的 `choices[0].message.content` 與相符的 Envoy `via_upstream` 日誌。 [測試指令碼](bonus/test-chat.sh)
+`bash llm-serving-bonus/test-chat.sh` 讀取 [Chat Request JSON](llm-serving-bonus/chat-request.json) 並透過 Gateway 發送 `POST /openai/v1/chat/completions`。腳本核對 Runtime 模型名稱、HTTP 200、非空的 `choices[0].message.content` 與相符的 Envoy `via_upstream` 日誌。 [測試指令碼](llm-serving-bonus/test-chat.sh)
 
-2026-11-21 00:24（台灣時間）實測，`lab2-bonus/qwen` 為 `READY=True`，Chat 回傳 **HTTP 200**、1 個 choice、32 個 completion tokens。Curl 端到端耗時 **5.240 秒**，同筆 Envoy access log 為 **5.233 秒**。 [HTTP Request 與 Envoy 日誌](bonus/evidence/chat.txt) · [原始 HTTP Response JSON](bonus/evidence/chat-response.json)
+2026-11-21 00:24（台灣時間）實測，`lab2-bonus/qwen` 為 `READY=True`，Chat 回傳 **HTTP 200**、1 個 choice、32 個 completion tokens。Curl 端到端耗時 **5.240 秒**，同筆 Envoy access log 為 **5.233 秒**。 [HTTP Request 與 Envoy 日誌](llm-serving-bonus/test-results/chat.txt) · [原始 HTTP Response JSON](llm-serving-bonus/test-results/chat-response.json)
 
 > Kubernetes is an open-source platform for deploying and managing containerized applications on a cluster of nodes, enabling developers to easily scale and manage their applications efficiently.
 
-![WSL 真實終端機重播 Qwen Chat Completion HTTP 200 與 Envoy 上游紀錄](bonus/evidence/06-llm-chat.png)
+11 月 24 日在 WSL 終端機重跑聊天測試，Qwen 回傳 HTTP 200，並產生下圖的回答。
+
+![Qwen Chat Completion 重跑截圖，包含請求、HTTP 200 與模型回答](llm-serving-bonus/test-results/06-llm-chat.png)
 
 | 量測 | 結果 |
 |---|---|
@@ -524,9 +526,9 @@ bash test-inference.sh
 | Predictor `kubectl top` | 請求前 3m CPU／3,366 MiB，請求後 5m CPU／3,371 MiB |
 | Predictor cgroup v2 | 整個測試區間 14.314 秒消耗 17.886 CPU 秒，平均約 1,250m CPU，從容器啟動起的記憶體峰值 3,409.2 MiB |
 
-WSL 可看到 RTX 3050 Laptop GPU，kind 節點未宣告 GPU 資源，因此本次使用 CPU。Predictor requests 為 2 CPU／4 GiB，limits 為 4 CPU／6 GiB。 `kubectl top` 是採樣值，cgroup 區間平均還包含啟動 port-forward 與核對日誌。 [原始資源量測](bonus/evidence/resources.txt)
+WSL 可看到 RTX 3050 Laptop GPU，kind 節點未宣告 GPU 資源，因此本次使用 CPU。Predictor requests 為 2 CPU／4 GiB，limits 為 4 CPU／6 GiB。 `kubectl top` 是採樣值，cgroup 區間平均還包含啟動 port-forward 與核對日誌。 [原始資源量測](llm-serving-bonus/test-results/resources.txt)
 
-兩個 namespace 的 HTTPRoute 都是 `Accepted=True`、`ResolvedRefs=True`，Gateway 為 `Programmed=True`。更新白名單後及 Chat 完成後，sklearn-iris V1／V2 皆回 HTTP 200、預測 `[1,1]`。這兩次為 Bonus 的回歸驗證。 [Gateway 與 sklearn-iris 回歸紀錄](bonus/evidence/gateway-and-iris.txt)
+兩個 namespace 的 HTTPRoute 都是 `Accepted=True`、`ResolvedRefs=True`，Gateway 為 `Programmed=True`。更新白名單後及 Chat 完成後，sklearn-iris V1／V2 皆回 HTTP 200、預測 `[1,1]`。這兩次為 Bonus 的回歸驗證。 [Gateway 與 sklearn-iris 回歸紀錄](llm-serving-bonus/test-results/gateway-and-iris.txt)
 
 ### 已知限制與排錯
 
