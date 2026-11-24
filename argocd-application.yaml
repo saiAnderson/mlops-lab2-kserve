@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sklearn-iris
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/saiAnderson/mlops-lab2-kserve.git
+    targetRevision: main
+    path: .
+    directory:
+      include: sklearn-iris-autoscaling.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: lab2
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true

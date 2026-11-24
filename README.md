@@ -533,3 +533,75 @@ WSL 可看到 RTX 3050 Laptop GPU，kind 節點未宣告 GPU 資源，因此本�
 - 此次驗證的是 CPU 上的單筆、非串流 Chat Completion。首度拉取約 4.04 GB 壓縮映像實測花了 3 分 28.739 秒，之後的時間取決於快取、網速和節點負載。
 - 首次 CPU 容器啟動時，Runtime 尚未監聽 8080，readiness probe 曾短暫收到 connection refused，模型載入後自行恢復。叢集也沿用既有的 Istio CRD 警告，實際流量由已驗證的 Envoy HTTPRoute 承接。
 - 若模型無法載入，先讀 `kubectl -n lab2-bonus logs deploy/qwen-predictor -c storage-initializer` 及 `-c kserve-container`，並核對 Pod events、image digest、固定 revision 和資源使用量。執行時使用前述 Lab kubeconfig 的命令陣列。
+
+## Bonus｜Argo CD 同步部署
+
+使用 Argo CD v3.6.2，從 GitHub 的 `main` 分支讀取 InferenceService 設定，同步至 `kserve-lab2` 叢集的 `lab2` 命名空間。本次採用手動同步，在網頁操作 Sync 後確認部署與推論結果。 [Application 設定](argocd-application.yaml)
+
+### Application 設定
+
+| 設定 | 本次使用的值與用途 |
+|---|---|
+| Repository | `https://github.com/saiAnderson/mlops-lab2-kserve.git` |
+| Revision | `main`，追蹤此分支的部署設定 |
+| Path | `.`，讀取 Repository 根目錄 |
+| Directory include | `sklearn-iris-autoscaling.yaml`，選定已完成 Promotion 的 `model-2` 與 CPU Autoscaling 設定 |
+| Destination | `https://kubernetes.default.svc`，部署至 Argo CD 所在叢集的 `lab2` |
+| Sync policy | Manual，由使用者在網頁按 Sync 執行同步 |
+| Sync option | `ServerSideApply=true`，由 Kubernetes API server 合併設定與管理欄位 |
+
+Repository 中保留了不同測試階段的 InferenceService YAML，因此使用 `directory.include` 選定本次正式部署檔案。同步後仍由 KServe 管理 predictor Deployment、Service、HTTPRoute 與 HPA。 [Argo CD 檔案篩選](https://argo-cd.readthedocs.io/en/stable/user-guide/directory/#including-only-certain-files) · [Server-Side Apply](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/#server-side-apply)
+
+### 安裝與建立 Application
+
+先完成本專案的 KServe 與 Autoscaling 階段，再於 WSL Ubuntu 的專案根目錄執行。以下固定使用 Argo CD v3.6.2 官方安裝檔。 [官方發布與安裝指令](https://github.com/argoproj/argo-cd/releases/tag/v3.6.2)
+
+```bash
+cd ~/projects/mlops-lab2
+export KUBECONFIG="$PWD/.kube/kserve-lab2.yaml"
+lab=(kubectl --kubeconfig="$KUBECONFIG" --context=kind-kserve-lab2 --cache-dir="$PWD/.kube/cache")
+
+"${lab[@]}" create namespace argocd --dry-run=client -o yaml | "${lab[@]}" apply --server-side -f -
+"${lab[@]}" apply --server-side -n argocd \
+  -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.6.2/manifests/install.yaml
+"${lab[@]}" -n argocd rollout status deployment/argocd-server --timeout=300s
+"${lab[@]}" -n argocd get pods
+```
+
+確認 Argo CD 的七個 Pod 全部 `1/1 Running` 後，建立 Application。
+
+```bash
+"${lab[@]}" apply -f argocd-application.yaml
+```
+
+### 網頁登入與手動同步
+
+在同一個終端機取得初始管理員密碼，再建立連線。密碼由本機指令讀取，登入帳號為 `admin`。
+
+```bash
+"${lab[@]}" -n argocd get secret argocd-initial-admin-secret \
+  -o go-template='{{.data.password | base64decode}}{{"\n"}}'
+"${lab[@]}" -n argocd port-forward svc/argocd-server 18081:443
+```
+
+保持 port-forward 執行，開啟 [Argo CD 本機網頁](https://localhost:18081)。此 Lab 使用自簽憑證，瀏覽器可能顯示憑證提示。登入後依序操作。
+
+1. 開啟 `sklearn-iris` Application，查看 Git 設定與叢集狀態。
+2. 按 Sync，確認已勾選 `serving.kserve.io/InferenceService/lab2/sklearn-iris`，並勾選 Server-Side Apply。
+3. 按 Synchronize，等待 Last Sync 顯示 `Sync OK`，Sync Status 為 `Synced`。
+4. 等 App Health 由 `Progressing` 轉為 `Healthy`，確認模型服務已就緒。
+
+### 執行結果與同步後驗證
+
+2026-11-25 00:44:34（台灣時間）手動同步成功，來源為 `main` 分支的 commit `694d5012a6efa4c14239e732c184ff2803b63a39`。截圖保留當次同步的版本與結果。Application 隨後為 `Synced`、`Healthy`，InferenceService 為 `READY=True`，predictor Deployment 為 `1/1 Available`。
+
+```bash
+"${lab[@]}" -n argocd get application sklearn-iris
+"${lab[@]}" -n lab2 get isvc sklearn-iris
+"${lab[@]}" -n lab2 get deployment sklearn-iris-predictor
+bash test-inference.sh
+```
+
+同步後已實際重跑 V1／V2 推論，兩者均回傳 HTTP 200，預測結果一致為 `[1,1]`，腳本顯示 `PASS`。重跑紀錄寫入 `.kube/phase3/last-run/`。
+
+![Argo CD 手動同步成功，顯示 Healthy、Synced、Sync OK 與模型服務資源關聯](test-results/09-argocd-sync.png)
