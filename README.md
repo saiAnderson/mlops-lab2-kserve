@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-本專案依課程講義第 49–50 頁及 TA 公告，在 kind 叢集以 KServe Standard 部署 `sklearn-iris`，驗證 V1／V2 推論、Canary／Promotion 與 CPU Autoscaling。下方各階段附有重現指令。
+本專案依課程講義第 49–50 頁及 TA 公告，在 kind 叢集以 KServe Standard 部署 `sklearn-iris`，驗證 V1／V2 推論、Canary／Promotion 與 CPU Autoscaling。下方各階段預設在 WSL Ubuntu 的同一個 Bash 終端機依序執行。若專案位於其他目錄，請將範例中的 `~/projects/mlops-lab2` 換成實際路徑。
 
 ## 作業交付清單
 
@@ -303,7 +303,10 @@ curl -fsSL https://github.com/kubernetes-sigs/metrics-server/releases/download/v
   -o "$d/metrics-server-v0.9.0.yaml"
 printf '%s  %s\n' 1cec29a5267809306a2c6ec74a3e449abbb705b4a8beed0c8a1963910f72c79b \
   "$d/metrics-server-v0.9.0.yaml" | sha256sum --check
-"${lab[@]}" apply --server-side -f "$d/metrics-server-v0.9.0.yaml"
+metrics_deployment=$("${lab[@]}" -n kube-system get deployment metrics-server --ignore-not-found -o name)
+if [ -z "$metrics_deployment" ]; then
+  "${lab[@]}" apply --server-side -f "$d/metrics-server-v0.9.0.yaml"
+fi
 
 node=kserve-lab2-control-plane
 ip=$("${lab[@]}" get node "$node" -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}')
@@ -360,12 +363,13 @@ EOF
 `hey` 使用 Ubuntu Noble 官方 amd64 套件 `0.1.4-2ubuntu0.24.04.3`。比對 APT 套件索引 SHA-256 後只抽取 binary 到 `.kube/bin/hey`。該套件不支援 `-U`，初次啟動在傳送流量前即被旗標解析拒絕。修正後完成原定 30 秒批次。套件會覆寫自訂 User-Agent，因此後續腳本以 URL query 中的單次批次 ID 比對 Envoy access log。HTTP POST 仍送往相同的 V1 路徑。 [Ubuntu 發行紀錄](https://launchpad.net/ubuntu/+source/hey/0.1.4-2ubuntu0.24.04.3) · [hey v0.1.4 Header 實作](https://raw.githubusercontent.com/rakyll/hey/v0.1.4/hey.go)
 
 ```bash
+d=.kube/phase5
+mkdir -p "$d" .kube/bin
 version=0.1.4-2ubuntu0.24.04.3
 archive=$(apt-cache show "hey=$version" | awk '$1=="Filename:" && !seen++ {print $2}')
 checksum=$(apt-cache show "hey=$version" | awk '$1=="SHA256:" && !seen++ {print $2}')
 curl -fsSL "https://archive.ubuntu.com/ubuntu/$archive" -o "$d/hey.deb"
 printf '%s  %s\n' "$checksum" "$d/hey.deb" | sha256sum --check
-mkdir -p .kube/bin
 dpkg-deb --fsys-tarfile "$d/hey.deb" | tar -xOf - ./usr/bin/hey > "$d/hey"
 install -m 0755 "$d/hey" .kube/bin/hey
 ```
@@ -475,24 +479,18 @@ WSL 的 `curl` 經本機 port-forward 連到既有 Envoy Gateway Service。Gatew
 
 ### 部署與重現
 
-在 WSL Ubuntu 的專案根目錄執行以下步驟。適用於已完成必要項目、Gateway 仍只接受 `lab2` 的 Lab。先保存當時的 Gateway 設定。若已套用 `lab2` 與 `lab2-bonus` 的白名單，可略過 patch。原始 manifest 保存在 `main` 的 `infra/gateway.yaml`，實測的 [selector diff](llm-serving-bonus/test-results/gateway-selector.diff) 只新增 Bonus namespace 的路由授權。
+完成必做項目後，在 WSL Ubuntu 的專案根目錄執行。Phase 2B 套用的 [Gateway 設定](infra/gateway.yaml) 已允許 `lab2` 與 `lab2-bonus` 掛載路由。以下先確認 Gateway 已就緒並重驗 Iris 推論，再部署 Qwen。最初新增 Bonus namespace 的變更保留在 [selector diff](llm-serving-bonus/test-results/gateway-selector.diff)。
 
 ```bash
 export KUBECONFIG="$PWD/.kube/kserve-lab2.yaml"
 lab=(kubectl --kubeconfig="$KUBECONFIG" --context=kind-kserve-lab2 --cache-dir="$PWD/.kube/cache")
-mkdir -p .kube/phase7b
-"${lab[@]}" -n kserve get gateway kserve-ingress-gateway -o yaml > .kube/phase7b/gateway-before.yaml
-
-"${lab[@]}" -n kserve patch gateway kserve-ingress-gateway --type=json --patch '[
-  {"op":"test","path":"/spec/listeners/0/name","value":"http"},
-  {"op":"test","path":"/spec/listeners/0/allowedRoutes/namespaces/selector","value":{"matchLabels":{"kubernetes.io/metadata.name":"lab2"}}},
-  {"op":"replace","path":"/spec/listeners/0/allowedRoutes/namespaces/selector","value":{"matchExpressions":[{"key":"kubernetes.io/metadata.name","operator":"In","values":["lab2","lab2-bonus"]}]}}
-]'
+"${lab[@]}" -n kserve get gateway kserve-ingress-gateway \
+  -o jsonpath='{.spec.listeners[0].allowedRoutes.namespaces.selector.matchExpressions[0].values[*]}{"\n"}'
 "${lab[@]}" -n kserve wait --for=condition=Programmed gateway/kserve-ingress-gateway --timeout=60s
 bash test-inference.sh
 ```
 
-確認原有 V1／V2 皆為 HTTP 200 才繼續部署。若回歸失敗，將同一個 selector 還原為 `matchLabels: {kubernetes.io/metadata.name: lab2}`，並驗證 sklearn-iris 恢復。
+預期 Gateway 列出 `lab2 lab2-bonus`。若仍使用舊版設定，先依 Phase 2B 套用 `infra/gateway.yaml`。確認 V1／V2 皆為 HTTP 200 後，再部署 Qwen。
 
 ```bash
 "${lab[@]}" create namespace lab2-bonus --dry-run=client -o yaml | "${lab[@]}" apply --server-side -f -
