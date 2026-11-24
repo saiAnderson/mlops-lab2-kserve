@@ -2,7 +2,17 @@
 
 ## Project Overview
 
-本專案依課程講義第 49–50 頁及 TA 正式公告，交付 sklearn-iris 部署、V1／V2 推論、Canary／Promotion 與 CPU Autoscaling 的可重現設定及真實執行紀錄。依下列階段順序可在獨立的 `kserve-lab2` 重現。已完成的實測與截圖狀態見本頁末尾的交付清單。
+本專案依課程講義第 49–50 頁及 TA 公告，在 kind 叢集以 KServe Standard 部署 `sklearn-iris`，驗證 V1／V2 推論、Canary／Promotion 與 CPU Autoscaling。下方各階段附有重現指令。
+
+## 作業交付清單
+
+| 作業項目 | 部署與測試檔案 | 執行結果 |
+|---|---|---|
+| KServe Deployment | [InferenceService YAML](sklearn-iris.yaml) | [部署截圖](evidence/01-isvc-ready.png)，`READY=True` |
+| Model Inference | [推論腳本](test-inference.sh) · [V1 輸入](iris-input-v1.json) · [V2 輸入](iris-input-v2.json) | [V1 截圖](evidence/02-inference-v1.png) · [V2 截圖](evidence/03-inference-v2.png)，兩者皆為 HTTP 200，預測 `[1, 1]` |
+| Canary Deployment | [Canary YAML](sklearn-iris-canary.yaml) · [Promotion YAML](sklearn-iris-promote.yaml) · [分流測試腳本](canary-test.sh) | [分流統計截圖](evidence/04-canary-count.png)，舊版 16 筆、新版 4 筆 · [Promotion 紀錄](evidence/05-canary-promotion.txt)，5 筆皆由新版處理 |
+| Autoscaling | [Autoscaling YAML](sklearn-iris-autoscaling.yaml) · [負載測試腳本](load-test.sh) | [副本變化截圖](evidence/05-autoscaling.png)，負載期間 Ready 副本由 1 增至 3，結束後回到 1 |
+| Bonus · LLM Serving | [Qwen InferenceService](bonus/qwen-inferenceservice.yaml) · [ServingRuntime](bonus/qwen-servingruntime.yaml) · [聊天測試腳本](bonus/test-chat.sh) · [請求 JSON](bonus/chat-request.json) | [Chat Completion 截圖](bonus/evidence/06-llm-chat.png) · [執行紀錄](bonus/evidence/chat.txt)，HTTP 200 並回傳模型回答 |
 
 ## Architecture
 
@@ -379,6 +389,15 @@ bash load-test.sh 60s 20
 - **60 秒補測。** 等第一批降至 1 個 Ready 後，只延長持續時間，保持 20 並行、相同 HPA、CPU 資源與輸入。`13:59:41` HPA 因 CPU 超標把 Desired 提至 3，`13:59:43` CPU 為 227%（227m），當時 Ready 為 1。`14:00:20` 負載仍在執行，已觀察到 3 個 Ready，CPU 為 501%（501m）。`14:05:42` HPA 自動降至 1，下一次採樣確認 1 個 Ready。Envoy 活躍日誌和 Lab 節點上的輪替日誌均有此批次 ID，紀錄含 `via_upstream`、HTTP 200 與實際後端位址。腳本現於負載期間擷取 Envoy 樣本，降低負載結束後因日誌輪替遺漏的機率。 [60 秒實測紀錄](evidence/08-autoscaling-60s.txt)
 - **測試後。** `sklearn-iris` 持續 `READY=True`，仍使用 `model-2`，經相同 Gateway 的負載前後探測均為 HTTP 200，預測 `[1,1]`。Metrics Server 為 `1/1`，Metrics API 可用，最終 HPA CPU `2%/50%`，`ScalingActive=True`（`ValidMetricFound`）。舊 `test-cluster` 容器 ID、啟動時間、重啟次數及 IP 前後相同，兩份 kubeconfig 的 SHA-256 相同，預設 context 仍為 `kind-test-cluster`。
 
+### 重跑驗證（2026-11-24，台灣時間）
+
+| 批次 | HTTP 200 | 其他 HTTP／傳輸錯誤 | Ready（負載前／負載中最高／全程最高／最後） |
+|---|---:|---:|---|
+| 30 秒 × 20 並行 | 17,035 | 0／0 | 1／1／3／1 |
+| 60 秒 × 20 並行 | 30,026 | 0／0 | 1／3／3／1 |
+
+60 秒批次中，HPA 於 `23:11:44` 因 CPU 使用率超過目標而將副本數提高至 3。負載期間已有 3 個副本 Ready，負載結束後於 `23:17:53` 縮回 1 個副本。
+
 ## Screenshots
 
 五張 PNG 從 WSL Ubuntu 的 xterm 視窗擷取。畫面顯示各階段當時輸出的原始紀錄，保留原始時間戳與結果。完整 TXT 與逐筆紀錄也一併存於 `evidence/`。
@@ -445,20 +464,6 @@ grep -E 'SuccessfulRescale|^HTTP 200 responses:' evidence/08-autoscaling-60s.txt
 - `model` 與 `model-2` 的模型檔內容相同，兩版回傳相同的預測。部署版本由實際後端和模型 URI 辨識。
 - Ready 擴容時間受 CPU 採樣、HPA reconciliation 和新 Pod 的啟動時間影響。30 秒批次證明了 HPA 提高 Desired，負載中 Ready 擴容由獨立的 60 秒批次證明。
 - Metrics Server 的 CA 與 hostname 對應僅適用此 Lab kind 節點。節點 IP 或 serving CA 變更後需重新核對。
-
-## Deliverables Checklist
-
-| 交付項目 | 狀態 | 核對依據 |
-|---|---|---|
-| KServe InferenceService YAML | 已驗證 | [Standard sklearn baseline](sklearn-iris.yaml) 與 [Ready 輸出](evidence/01-isvc-ready.txt) |
-| V1／V2 JSON 與推論腳本 | 已驗證 | [V1 資料](iris-input-v1.json)、[V2 資料](iris-input-v2.json) 的兩筆特徵相同。[腳本](test-inference.sh) 與兩份原始回應均證實 HTTP 200、預測 `[1,1]` |
-| Canary Deployment YAML | 已驗證 | [Canary YAML](sklearn-iris-canary.yaml) 使用 KServe `spec.canary`，實測 HTTPRoute 權重 80/20 |
-| 各版本實際 Canary 請求數 | 已驗證，TA 驗收方式待確認 | [20 筆原始紀錄](evidence/04-canary-count.txt) 可從 Envoy 與 Pod 對照重算 16／4 |
-| Promotion YAML 與驗證 | 已驗證 | [Promotion YAML](sklearn-iris-promote.yaml) 與 [5 筆原始紀錄](evidence/05-canary-promotion.txt) 證明 `model-2` 單一後端 |
-| Autoscaling YAML | 已驗證 | [Autoscaling YAML](sklearn-iris-autoscaling.yaml) 與 [Metrics／HPA 基線](evidence/06-autoscaling-baseline.txt) 證明 CPU 目標與副本設定 |
-| hey 負載腳本 | 已檢查，兩批實測已驗證 | [負載腳本](load-test.sh) 通過語法檢查，數據由 [30 秒](evidence/07-autoscaling-ta-30s.txt) 與 [60 秒](evidence/08-autoscaling-60s.txt) 原始紀錄核對。最後調整的 Envoy 取樣時點尚未重跑整批負載 |
-| README | 已驗證 | 安裝與重現指令、結果、排錯、已知限制，以及五個有效的相對圖片路徑 |
-| 五張必要 PNG | 已驗證 | Screenshots 收錄五張 WSL 終端機擷取畫面及對應的原始證據 |
 
 ## Bonus｜LLM Serving
 
