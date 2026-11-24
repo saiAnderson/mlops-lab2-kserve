@@ -277,7 +277,7 @@ lab=(kubectl --kubeconfig="$KUBECONFIG" --context=kind-kserve-lab2 --cache-dir="
 (set -o pipefail; bash canary-test.sh promoted 5 | tee .kube/promotion-replay.txt)
 ```
 
-11 月 24 日於同一 WSL 叢集重驗 Promotion，`sklearn-iris` 為 `READY=True`。兩條 HTTPRoute 都將流量送往 `sklearn-iris-predictor:80`。5 筆請求皆回 HTTP 200，全部由載入 `model-2` 的 Ready Pod 處理。 [Promotion 完整實測紀錄](test-results/05-canary-promotion.txt)
+11 月 24 日 22:29（台灣時間）在 WSL 驗證 Promotion，`sklearn-iris` 為 `READY=True`。5 筆請求皆回 HTTP 200，全部由 `model-2` 處理。 [Promotion 終端機輸出](test-results/05-canary-promotion.txt)
 
 ### 排錯
 
@@ -510,9 +510,9 @@ bash test-inference.sh
 
 `bash llm-serving-bonus/test-chat.sh` 讀取 [Chat Request JSON](llm-serving-bonus/chat-request.json) 並透過 Gateway 發送 `POST /openai/v1/chat/completions`。腳本核對 Runtime 模型名稱、HTTP 200、非空的 `choices[0].message.content` 與相符的 Envoy `via_upstream` 日誌。 [測試指令碼](llm-serving-bonus/test-chat.sh)
 
-2026-11-24 23:41（台灣時間）在 WSL 重跑聊天測試，`lab2-bonus/qwen` 為 `READY=True`。請求回傳 **HTTP 200**，模型產生 35 個回答 token，curl 耗時約 **5.195 秒**。 [請求、回答與 Envoy 日誌](llm-serving-bonus/test-results/chat.txt) · [同次請求的原始回應 JSON](llm-serving-bonus/test-results/chat-response.json)
+2026-11-24 23:22（台灣時間）在 WSL 執行聊天測試，`lab2-bonus/qwen` 為 `READY=True`。請求回傳 **HTTP 200**，模型產生 51 個回答 token，curl 耗時約 **11.235 秒**。 [終端機輸出](llm-serving-bonus/test-results/chat.txt) · [回應 JSON](llm-serving-bonus/test-results/chat-response.json)
 
-下圖是同日在 WSL 終端機另一次成功的聊天請求。
+截圖與文字紀錄為同一次請求，保留了資料夾改名前執行的 `bash bonus/test-chat.sh`。
 
 ![Qwen Chat Completion 重跑截圖，包含請求、HTTP 200 與模型回答](llm-serving-bonus/test-results/06-llm-chat.png)
 

@@ -1,4 +1,5 @@
-Phase 4 Promotion | 2026-11-24T15:41:13+00:00
+(base) anderson@LAPTOP-4P1SICN6:~/projects/mlops-lab2$ bash canary-test.sh promoted 5
+Phase 4 Promotion | 2026-11-24T14:29:49+00:00
 InferenceService: lab2/sklearn-iris Ready=True
 Gateway: envoy-gateway-system/envoy-kserve-kserve-ingress-gateway-deaaa49b:80 | Host: sklearn-iris-lab2.example.com
 HTTPRoute lab2/sklearn-iris weights: {"sklearn-iris-predictor": 1}
@@ -9,32 +10,3 @@ Failed Requests (non-200 or transport): 0
 Unattributed Requests: 0
 Invalid HTTP 200 Predictions: 0
 Route and ready endpoints unchanged across batch: True
-
-Gateway request URL: http://127.0.0.1:39453/v1/models/sklearn-iris:predict
-Request body: {
-  "instances": [[6.8, 2.8, 4.8, 1.4], [6.0, 3.4, 4.5, 1.6]]
-}
-All HTTPRoute weights: {"sklearn-iris": {"sklearn-iris-predictor": 1}, "sklearn-iris-predictor": {"sklearn-iris-predictor": 1}}
-Ready EndpointSlice to Pod mapping: {
-  "10.244.0.24:8080": {
-    "service": "sklearn-iris-predictor",
-    "model": "model-2",
-    "uri": "gs://kfserving-examples/models/sklearn/1.0/model-2",
-    "pod": "sklearn-iris-predictor-7c8d9dff86-9qdql",
-    "podUID": "da40cf27-69ff-48dd-82c9-f10714bb4312"
-  }
-}
-
-User-Agent	HTTP	Model	Upstream	Envoy request ID	Response	Curl error
-mlops-lab2-phase4-358e34ebcb9f458e91c5923ced3ce0a1-001	200	model-2	10.244.0.24:8080	c86192a1-f1f8-4bca-9fd6-de1a3bcae1ba	{"predictions":[1,1]}	
-mlops-lab2-phase4-358e34ebcb9f458e91c5923ced3ce0a1-002	200	model-2	10.244.0.24:8080	dd3fb09e-4009-4945-94c9-c16686fc955c	{"predictions":[1,1]}	
-mlops-lab2-phase4-358e34ebcb9f458e91c5923ced3ce0a1-003	200	model-2	10.244.0.24:8080	2ade681e-bff5-4584-968b-9a9ad18668d5	{"predictions":[1,1]}	
-mlops-lab2-phase4-358e34ebcb9f458e91c5923ced3ce0a1-004	200	model-2	10.244.0.24:8080	6d368388-9592-4a0b-a025-429d8a2cfc7b	{"predictions":[1,1]}	
-mlops-lab2-phase4-358e34ebcb9f458e91c5923ced3ce0a1-005	200	model-2	10.244.0.24:8080	da930ead-a7a6-4cf5-9a2d-cc6465c8f17c	{"predictions":[1,1]}	
-
-Matched Envoy access logs (JSON Lines)
-{":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:46824","duration":3,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-24T15:41:08.501Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.24:8080","upstream_local_address":"10.244.0.6:55688","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-phase4-358e34ebcb9f458e91c5923ced3ce0a1-001","x-envoy-origin-path":"/v1/models/sklearn-iris:predict","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.6","x-request-id":"c86192a1-f1f8-4bca-9fd6-de1a3bcae1ba"}
-{":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:46834","duration":1,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-24T15:41:08.516Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.24:8080","upstream_local_address":"10.244.0.6:55700","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-phase4-358e34ebcb9f458e91c5923ced3ce0a1-002","x-envoy-origin-path":"/v1/models/sklearn-iris:predict","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.6","x-request-id":"dd3fb09e-4009-4945-94c9-c16686fc955c"}
-{":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:46844","duration":2,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-24T15:41:08.528Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.24:8080","upstream_local_address":"10.244.0.6:55712","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-phase4-358e34ebcb9f458e91c5923ced3ce0a1-003","x-envoy-origin-path":"/v1/models/sklearn-iris:predict","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.6","x-request-id":"2ade681e-bff5-4584-968b-9a9ad18668d5"}
-{":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:46856","duration":1,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-24T15:41:08.542Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.24:8080","upstream_local_address":"10.244.0.6:55688","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-phase4-358e34ebcb9f458e91c5923ced3ce0a1-004","x-envoy-origin-path":"/v1/models/sklearn-iris:predict","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.6","x-request-id":"6d368388-9592-4a0b-a025-429d8a2cfc7b"}
-{":authority":"sklearn-iris-lab2.example.com","bytes_received":64,"bytes_sent":21,"connection_termination_details":null,"downstream_local_address":"127.0.0.1:10080","downstream_remote_address":"127.0.0.1:46864","duration":2,"method":"POST","protocol":"HTTP/1.1","requested_server_name":null,"response_code":200,"response_code_details":"via_upstream","response_flags":"-","route_name":"httproute/lab2/sklearn-iris/rule/0/match/0/sklearn-iris-lab2_example_com","start_time":"2026-11-24T15:41:08.556Z","upstream_cluster":"httproute/lab2/sklearn-iris/rule/0","upstream_host":"10.244.0.24:8080","upstream_local_address":"10.244.0.6:55724","upstream_transport_failure_reason":null,"user-agent":"mlops-lab2-phase4-358e34ebcb9f458e91c5923ced3ce0a1-005","x-envoy-origin-path":"/v1/models/sklearn-iris:predict","x-envoy-upstream-service-time":null,"x-forwarded-for":"10.244.0.6","x-request-id":"da930ead-a7a6-4cf5-9a2d-cc6465c8f17c"}
